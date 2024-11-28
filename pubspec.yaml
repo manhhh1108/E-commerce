@@ -42,6 +42,14 @@ dependencies:
   firebase_storage: ^12.3.5
   image_picker: ^1.1.2
   encrypt: ^5.0.0
+  cached_network_image: ^3.2.3
+  shimmer_animation: ^2.0.0
+  firebase_ui_auth: ^1.16.0
+  country_state_city_picker: ^1.2.8
+  flutter_easyloading: ^3.0.5
+  provider: ^6.1.2
+  uuid: ^4.5.1
+
 
 
 dev_dependencies:

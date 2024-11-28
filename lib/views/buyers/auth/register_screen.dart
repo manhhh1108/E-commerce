@@ -1,49 +1,164 @@
+import 'dart:typed_data';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:multi_store/controllers/auth_cotroller.dart';
 import 'package:multi_store/utils/show_snackBar.dart';
 import 'package:multi_store/views/buyers/auth/login_screen.dart';
 
-class RegisterScreen extends StatefulWidget {
+class BuyerRegisterScreen extends StatefulWidget {
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<BuyerRegisterScreen> createState() => _BuyerRegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
   final AuthController _authController = AuthController();
-
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   late String email;
-
   late String fullName;
-
   late String phoneNumber;
-
   late String password;
 
   bool _isLoading = false;
+  Uint8List? _image;
+  bool _imageSelected = false;
 
   _signUpUser() async {
     setState(() {
       _isLoading = true;
     });
-    if(_formKey.currentState!.validate()){
-      await _authController.signUpUsers(
-          email, fullName, phoneNumber, password).whenComplete((){
-            setState(() {
-              _formKey.currentState!.reset();
-              _isLoading = false;
-            });
+
+    if (_formKey.currentState!.validate() && _image != null) {
+      setState(() {
+        _imageSelected = true;
       });
 
-      return showSnack(context, 'Congratulations account has been created');
+      try {
+        // Đăng ký người dùng với Firebase Authentication
+        UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
 
-    }else{
+        // Tải ảnh lên Firebase Storage
+        String fileName = '${userCredential.user!.uid}_profile.jpg'; // Tên file ảnh duy nhất
+        Reference storageRef = FirebaseStorage.instance.ref().child('profile_images/$fileName');
+        UploadTask uploadTask = storageRef.putData(_image!);
+
+        TaskSnapshot snapshot = await uploadTask.whenComplete(() {});
+
+        // Lấy URL ảnh đã tải lên
+        String imageUrl = await snapshot.ref.getDownloadURL();
+
+        // Lưu thông tin người dùng vào Firestore, bao gồm cả URL ảnh
+        String uid = userCredential.user!.uid;
+        await FirebaseFirestore.instance.collection('buyers').doc(uid).set({
+          'fullName': fullName,
+          'phoneNumber': phoneNumber,
+          'email': email,
+          'buyerId': uid,
+          'profileImage': imageUrl,
+          'address': '',
+        });
+
+        setState(() {
+          _isLoading = false;
+        });
+
+        showSnack(context, 'Account created successfully');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+        );
+      } on FirebaseAuthException catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        if (e.code == 'email-already-in-use') {
+          showSnack(context, 'Email is already in use');
+        } else {
+          showSnack(context, e.message ?? 'An error occurred');
+        }
+      }
+    } else {
       setState(() {
         _isLoading = false;
+        if (_image == null) {
+          _imageSelected = false;
+          showSnack(context, 'Please select a profile image');
+        } else {
+          _imageSelected = true;
+        }
       });
-      return showSnack(context, 'Please fields must not be empty');
+
+      if (!_formKey.currentState!.validate()) {
+        showSnack(context, 'Please fill in all fields');
+      }
     }
+  }
+
+
+
+  selectImage() async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Select Image"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(CupertinoIcons.photo),
+                title: Text("Select from library"),
+                onTap: () async {
+                  Navigator.of(context).pop();
+                  selectGalleryImage();
+                },
+              ),
+              ListTile(
+                leading: Icon(CupertinoIcons.camera),
+                title: Text("Take a photo with the camera"),
+                onTap: () async {
+                  Navigator.of(context).pop();
+                  selectCameraImage();
+                },
+              ),
+              if (_image != null)
+                ListTile(
+                  leading: Icon(CupertinoIcons.trash),
+                  title: Text("Delete photo"),
+                  onTap: () {
+                    setState(() {
+                      _image = null;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  selectGalleryImage() async {
+    Uint8List im = await _authController.pickProfileImage(ImageSource.gallery);
+    setState(() {
+      _image = im;
+    });
+  }
+
+  selectCameraImage() async {
+    Uint8List im = await _authController.pickProfileImage(ImageSource.camera);
+    setState(() {
+      _image = im;
+    });
   }
 
   @override
@@ -62,10 +177,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     fontSize: 20,
                   ),
                 ),
-                CircleAvatar(
-                  radius: 64,
-                  backgroundColor: Colors.yellow.shade900,
+                Stack(
+                  children: [
+                    _image != null
+                        ? CircleAvatar(
+                      radius: 64,
+                      backgroundColor: Colors.yellow.shade900,
+                      backgroundImage: MemoryImage(_image!),
+                    )
+                        : CircleAvatar(
+                      radius: 64,
+                      backgroundColor: Colors.yellow.shade900,
+                    ),
+                    Positioned(
+                      right: 0,
+                      top: 0, // Điều chỉnh vị trí icon theo nhu cầu
+                      child: IconButton(
+                        onPressed: () {
+                          selectImage(); // Hiển thị dialog chọn ảnh
+                        },
+                        icon: Icon(
+                          CupertinoIcons.photo,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+                if (!_imageSelected)
+                  Text(
+                    'Please select a profile image',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 Padding(
                   padding: const EdgeInsets.all(13.0),
                   child: TextFormField(
@@ -111,7 +257,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     onChanged: (value) {
                       phoneNumber = value;
                     },
-                    decoration: InputDecoration(labelText: 'Enter Phone Number'),
+                    decoration:
+                    InputDecoration(labelText: 'Enter Phone Number'),
                   ),
                 ),
                 Padding(
@@ -146,9 +293,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Center(
-                      child: _isLoading ? CircularProgressIndicator(
+                      child: _isLoading
+                          ? CircularProgressIndicator(
                         color: Colors.white,
-                      ):Text(
+                      )
+                          : Text(
                         'Register',
                         style: TextStyle(
                             color: Colors.white,
@@ -162,7 +311,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Already Have An Account?'),
+                    Text('Already Have An Account ?'),
                     TextButton(
                         onPressed: () {
                           Navigator.push(
@@ -172,7 +321,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             }),
                           );
                         },
-                        child: Text('Login'))
+                        child: Text('Login')),
                   ],
                 ),
               ],

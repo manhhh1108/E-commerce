@@ -3,8 +3,14 @@ import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:multi_store/provider/product_provider.dart';
+import 'package:multi_store/vendor/views/auth/vendor_auth_screen.dart';
+import 'package:multi_store/vendor/views/auth/vendor_register_screen.dart';
+import 'package:multi_store/vendor/views/screens/landing_screen.dart';
+import 'package:multi_store/views/buyers/auth/login_screen.dart';
 import 'package:multi_store/views/buyers/auth/register_screen.dart';
 import 'package:multi_store/views/buyers/main_screen.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,7 +24,11 @@ void main() async {
               storageBucket: "gs://multi-store-e24b6.firebasestorage.app"),
         )
       : await Firebase.initializeApp();
-  runApp(const MyApp());
+  runApp(MultiProvider(providers: [
+    ChangeNotifierProvider(create: (_) {
+      return ProductProvider();
+    })
+  ], child: const MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -33,7 +43,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(primarySwatch: Colors.blue, fontFamily: 'Brand-Bold'),
-      home: RegisterScreen(),
+      home: VendorAuthScreen(),
     );
   }
 }

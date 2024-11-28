@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:multi_store/controllers/auth_cotroller.dart';
 import 'package:multi_store/utils/show_snackBar.dart';
+import 'package:multi_store/views/buyers/auth/register_screen.dart';
 import 'package:multi_store/views/buyers/main_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -9,27 +10,40 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final AuthController _authController = AuthController();
   late String email;
 
   late String password;
 
+  bool _isLoading = false;
+
   _loginUser() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     if (_formKey.currentState!.validate()) {
       print("Email: $email, Password: $password");
 
       String res = await _authController.loginUsers(email, password);
 
+      setState(() {
+        _isLoading = false; // Đặt về false sau khi đăng nhập thành công hoặc thất bại
+      });
+
       if (res == 'success') {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-          return MainScreen();
-        }));
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) {
+              return MainScreen();
+            }));
       } else {
-        showSnack(context, res); // Hiển thị lỗi như: "No user found for that email"
+        showSnack(context, res);
       }
     } else {
+      setState(() {
+        _isLoading = false; // Đặt về false nếu dữ liệu không hợp lệ
+      });
       showSnack(context, 'Please fill in all fields');
     }
   }
@@ -50,10 +64,10 @@ class _LoginScreenState extends State<LoginScreen> {
               Padding(
                 padding: const EdgeInsets.all(13.0),
                 child: TextFormField(
-                  validator: (value){
-                    if(value!.isEmpty){
+                  validator: (value) {
+                    if (value!.isEmpty) {
                       return 'Please email must not be empty';
-                    }else{
+                    } else {
                       return null;
                     }
                   },
@@ -66,10 +80,11 @@ class _LoginScreenState extends State<LoginScreen> {
               Padding(
                 padding: const EdgeInsets.all(13.0),
                 child: TextFormField(
-                  validator: (value){
-                    if(value!.isEmpty){
+                  obscureText: true,
+                  validator: (value) {
+                    if (value!.isEmpty) {
                       return 'Please password must not be empty ';
-                    }else{
+                    } else {
                       return null;
                     }
                   },
@@ -83,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 20,
               ),
               InkWell(
-                onTap: (){
+                onTap: () {
                   _loginUser();
                 },
                 child: Container(
@@ -94,22 +109,33 @@ class _LoginScreenState extends State<LoginScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(
-                    child: Text(
-                      'Login',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 19,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 2),
-                    ),
+                    child: _isLoading
+                        ? CircularProgressIndicator(
+                            color: Colors.white,
+                          )
+                        : Text(
+                            'Login',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 19,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 2),
+                          ),
                   ),
                 ),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Need An Account?"),
-                  TextButton(onPressed: () {}, child: Text("Register"))
+                  Text("Need An Account ?"),
+                  TextButton(onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) {
+                        return BuyerRegisterScreen();
+                      }),
+                    );
+                  }, child: Text("Register"))
                 ],
               ),
             ],
