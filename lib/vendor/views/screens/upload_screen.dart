@@ -92,6 +92,7 @@ class UploadScreen extends StatelessWidget {
                       'productId': productId,
                       'productName': _productProvider.productData['productName'],
                       'productPrice': _productProvider.productData['productPrice'],
+                      'category': _productProvider.productData['category'],
                       'quantity': _productProvider.productData['quantity'],
                       'scheduleDate': _productProvider.productData['scheduleDate'],
                       'description': _productProvider.productData['description'],

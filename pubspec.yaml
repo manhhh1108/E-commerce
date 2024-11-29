@@ -49,6 +49,7 @@ dependencies:
   flutter_easyloading: ^3.0.5
   provider: ^6.1.2
   uuid: ^4.5.1
+  photo_view: ^0.15.0
 
 
 

@@ -7,6 +7,7 @@ import 'package:multi_store/provider/product_provider.dart';
 import 'package:multi_store/vendor/views/auth/vendor_auth_screen.dart';
 import 'package:multi_store/vendor/views/auth/vendor_register_screen.dart';
 import 'package:multi_store/vendor/views/screens/landing_screen.dart';
+import 'package:multi_store/vendor/views/screens/upload_screen.dart';
 import 'package:multi_store/views/buyers/auth/login_screen.dart';
 import 'package:multi_store/views/buyers/auth/register_screen.dart';
 import 'package:multi_store/views/buyers/main_screen.dart';
@@ -43,7 +44,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(primarySwatch: Colors.blue, fontFamily: 'Brand-Bold'),
-      home: VendorAuthScreen(),
+      home: MainScreen(),
     );
   }
 }
