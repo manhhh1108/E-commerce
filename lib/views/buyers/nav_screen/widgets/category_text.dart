@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_store/views/buyers/nav_screen/widgets/home_products.dart';
+import 'package:multi_store/views/buyers/nav_screen/widgets/main_product_widget.dart';
 
 class CategoryText extends StatefulWidget {
   @override
@@ -62,7 +63,7 @@ class _CategoryTextState extends State<CategoryText> {
                                 print(_selectedCategory);
                               },
                               label: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12.0), // Thêm padding nội bộ
+                                padding: const EdgeInsets.symmetric(horizontal: 10.0), // Thêm padding nội bộ
                                 constraints: BoxConstraints(
                                   minWidth: 40, // Đảm bảo chiều rộng tối thiểu
                                   minHeight: 40, // Đảm bảo chiều cao tối thiểu đồng nhất
@@ -73,7 +74,7 @@ class _CategoryTextState extends State<CategoryText> {
                                   textAlign: TextAlign.center, // Căn giữa văn bản
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 16,
+                                    fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -92,8 +93,16 @@ class _CategoryTextState extends State<CategoryText> {
               );
             },
           ),
+          if(_selectedCategory == null)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: MainProductWidget(),
+            ),
           if(_selectedCategory != null)
-            HomeProductsWidget(categoryName: _selectedCategory!),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: HomeProductsWidget(categoryName: _selectedCategory!),
+            ),
         ],
       ),
     );

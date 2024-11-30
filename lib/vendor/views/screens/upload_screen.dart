@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_store/provider/product_provider.dart';
@@ -101,6 +102,7 @@ class UploadScreen extends StatelessWidget {
                       'shippingCharge': _productProvider.productData['shippingCharge'],
                       'brandName': _productProvider.productData['brandName'],
                       'sizeList': _productProvider.productData['sizeList'],
+                      'vendorId': FirebaseAuth.instance.currentUser!.uid,
                     });
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Product saved successfully!')),
