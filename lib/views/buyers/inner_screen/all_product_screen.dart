@@ -1,35 +1,47 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'package:flutter/material.dart';
-import 'package:multi_store/views/buyers/ProductDetail/product_detail_screen.dart';
 
-class HomeProductsWidget extends StatelessWidget {
-  final String categoryName;
+import '../ProductDetail/product_detail_screen.dart';
 
-  const HomeProductsWidget({super.key, required this.categoryName});
+class AllProductScreen extends StatelessWidget {
+  final dynamic categoryData;
+
+  const AllProductScreen({super.key, this.categoryData});
 
   @override
   Widget build(BuildContext context) {
     final Stream<QuerySnapshot> _productsStream = FirebaseFirestore.instance
         .collection('products')
-        .where('category', isEqualTo: categoryName)
+        .where('category', isEqualTo: categoryData['categoryName'])
         // .where('approved', isEqualTo: true)
         .snapshots();
-    return StreamBuilder<QuerySnapshot>(
-      stream: _productsStream,
-      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-        if (snapshot.hasError) {
-          return Text('Something went wrong');
-        }
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: Text(categoryData['categoryName']),
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _productsStream,
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.hasError) {
+            return Text('Something went wrong');
+          }
 
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Text("Loading");
-        }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(
+                color: Colors.yellow.shade900,
+              ),
+            );
+          }
 
-        return Container(
-          height: 270,
-          child: ListView.separated(
-              scrollDirection: Axis.horizontal,
+          return GridView.builder(
+              itemCount: snapshot.data!.size,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                  childAspectRatio: 200 / 300),
               itemBuilder: (context, index) {
                 final productData = snapshot.data!.docs[index];
                 return GestureDetector(
@@ -78,13 +90,9 @@ class HomeProductsWidget extends StatelessWidget {
                     ),
                   ),
                 );
-              },
-              separatorBuilder: (context, _) => SizedBox(
-                    width: 15,
-                  ),
-              itemCount: snapshot.data!.docs.length),
-        );
-      },
+              });
+        },
+      ),
     );
   }
 }

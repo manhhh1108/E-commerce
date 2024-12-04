@@ -58,14 +58,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   width: double.infinity,
                   child: imageUrlList.isNotEmpty
                       ? PhotoView(
-                    imageProvider: NetworkImage(imageUrlList[_imageIndex]),
-                  )
+                          imageProvider:
+                              NetworkImage(imageUrlList[_imageIndex]),
+                        )
                       : Center(
-                    child: Text(
-                      'No Images Available',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
+                          child: Text(
+                            'No Images Available',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
                 ),
                 if (imageUrlList.isNotEmpty)
                   Positioned(
@@ -180,64 +181,85 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
             ),
             ExpansionTile(
-              title: Text('Available Size'),
+              title: Text(
+                'Available Size',
+                style: TextStyle(
+                    color: Colors.yellow.shade900,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold),
+              ),
               children: sizeList.isNotEmpty
                   ? [
-                Container(
-                  height: 50,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: sizeList.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: OutlinedButton(
-                          onPressed: () {
-                            setState(() {
-                              _selectedSize = sizeList[index];
-                            });
-                            print(_selectedSize);
+                      Container(
+                        height: 50,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: sizeList.length,
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: OutlinedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _selectedSize = sizeList[index];
+                                  });
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(
+                                    color: _selectedSize == sizeList[index]
+                                        ? Colors.yellow.shade900
+                                        : Colors.black,
+                                  ),
+                                ),
+                                child: Text(sizeList[index]),
+                              ),
+                            );
                           },
-                          child: Text(sizeList[index]),
                         ),
-                      );
-                    },
-                  ),
-                ),
-              ]
+                      ),
+                    ]
                   : [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    'No Sizes Available',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
-              ],
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          'No Sizes Available',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ],
             ),
           ],
         ),
       ),
       bottomSheet: InkWell(
         onTap: _selectedSize == null
-            ? null  // Disable if no size is selected
+            ? null // Disable if no size is selected
             : () {
-          _cartProvider.addProductToCart(
-            widget.productData['productName'],
-            widget.productData['productId'],
-            widget.productData['imageUrl'],
-            1, // Quantity
-            widget.productData['productPrice'],
-            widget.productData['vendorId'],
-            _selectedSize!,  // Safely use because we now check null
-            Timestamp.now(),
-          );
-        },
+                // Nếu đã chọn size thì thêm vào giỏ hàng
+                _cartProvider.addProductToCart(
+                  widget.productData['productName'],
+                  widget.productData['productId'],
+                  widget.productData['imageUrl'],
+                  1, // Số lượng
+                  widget.productData['quantity'],
+                  widget.productData['productPrice'],
+                  widget.productData['vendorId'],
+                  _selectedSize!, // Truyền size đã chọn
+                  Timestamp.now(),
+                );
+
+                // Hiển thị thông báo thành công
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Added to cart successfully!')),
+                );
+              },
         child: Container(
           height: 50,
           width: MediaQuery.of(context).size.width,
           decoration: BoxDecoration(
-            color: _selectedSize == null ? Colors.grey : Colors.yellow.shade900, // Disable button
+            color: _selectedSize == null
+                ? Colors.grey
+                : Colors.yellow.shade900, // Disable button if no size selected
             borderRadius: BorderRadius.circular(10),
           ),
           child: Row(

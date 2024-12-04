@@ -15,19 +15,22 @@ class CartProvider with ChangeNotifier {
       String productId,
       List imageUrl,
       int quantity,
+      int productQuantity,
       double price,
       String vendorId,
       String productSize,
       Timestamp scheduleDate) {
+    String productKey = productId + productSize;
     if (_cartItems.containsKey(productId)) {
       // Nếu sản phẩm đã có trong giỏ, cập nhật quantity
       _cartItems.update(
-        productId,
-            (existingCart) => CartAttr(
+        productKey,
+        (existingCart) => CartAttr(
           productName: existingCart.productName,
           productId: existingCart.productId,
           imageUrl: existingCart.imageUrl,
-          quantity: existingCart.quantity + 1,
+          quantity: existingCart.quantity + quantity,
+          productQuantity: existingCart.productQuantity,
           price: existingCart.price,
           vendorId: existingCart.vendorId,
           productSize: existingCart.productSize,
@@ -37,12 +40,13 @@ class CartProvider with ChangeNotifier {
     } else {
       // Nếu sản phẩm chưa có trong giỏ, thêm mới
       _cartItems.putIfAbsent(
-        productId,
-            () => CartAttr(
+        productKey,
+        () => CartAttr(
           productName: productName,
           productId: productId,
           imageUrl: imageUrl,
           quantity: quantity,
+          productQuantity: productQuantity,
           price: price,
           vendorId: vendorId,
           productSize: productSize,
@@ -63,15 +67,16 @@ class CartProvider with ChangeNotifier {
   void updateQuantity(String productId, int quantity) {
     if (_cartItems.containsKey(productId)) {
       if (quantity <= 0) {
-        removeProductFromCart(productId);  // Nếu số lượng <= 0, xóa sản phẩm
+        removeProductFromCart(productId); // Nếu số lượng <= 0, xóa sản phẩm
       } else {
         _cartItems.update(
           productId,
-              (existingCart) => CartAttr(
+          (existingCart) => CartAttr(
             productName: existingCart.productName,
             productId: existingCart.productId,
             imageUrl: existingCart.imageUrl,
             quantity: quantity,
+            productQuantity: existingCart.productQuantity,
             price: existingCart.price,
             vendorId: existingCart.vendorId,
             productSize: existingCart.productSize,
@@ -84,10 +89,10 @@ class CartProvider with ChangeNotifier {
   }
 
   // Tính tổng giá trị giỏ hàng
-  double getTotalPrice() {
+  double get totalPrice {
     double total = 0;
-    _cartItems.forEach((key, cartItem) {
-      total += cartItem.price * cartItem.quantity;
+    _cartItems.forEach((key, value) {
+      total += value.price * value.quantity;
     });
     return total;
   }
@@ -95,6 +100,16 @@ class CartProvider with ChangeNotifier {
   // Xóa tất cả sản phẩm trong giỏ
   void clearCart() {
     _cartItems.clear();
+    notifyListeners();
+  }
+
+  void increament(CartAttr cartAttr) {
+    cartAttr.increase();
+    notifyListeners();
+  }
+
+  void decreament(CartAttr cartAttr) {
+    cartAttr.decrease();
     notifyListeners();
   }
 }

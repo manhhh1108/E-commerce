@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:multi_store/views/buyers/nav_screen/categories_screen.dart';
 import 'package:multi_store/views/buyers/nav_screen/widgets/home_products.dart';
 import 'package:multi_store/views/buyers/nav_screen/widgets/main_product_widget.dart';
 
@@ -85,7 +86,12 @@ class _CategoryTextState extends State<CategoryText> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context){
+                          return CategoriesScreen();
+
+                        }));
+                      },
                       icon: Icon(Icons.arrow_forward_ios),
                     )
                   ],

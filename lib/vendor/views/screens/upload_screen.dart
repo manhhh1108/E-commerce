@@ -103,6 +103,7 @@ class UploadScreen extends StatelessWidget {
                       'brandName': _productProvider.productData['brandName'],
                       'sizeList': _productProvider.productData['sizeList'],
                       'vendorId': FirebaseAuth.instance.currentUser!.uid,
+                      'approved': false,
                     });
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Product saved successfully!')),

@@ -1,15 +1,20 @@
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:multi_store/provider/cart_provider.dart';
+import 'package:multi_store/provider/location_api.dart';
 import 'package:multi_store/provider/product_provider.dart';
 import 'package:multi_store/vendor/views/auth/vendor_auth_screen.dart';
 import 'package:multi_store/vendor/views/auth/vendor_register_screen.dart';
 import 'package:multi_store/vendor/views/screens/landing_screen.dart';
+import 'package:multi_store/vendor/views/screens/main_vendor_screen.dart';
 import 'package:multi_store/vendor/views/screens/upload_screen.dart';
 import 'package:multi_store/views/buyers/auth/login_screen.dart';
 import 'package:multi_store/views/buyers/auth/register_screen.dart';
+import 'package:multi_store/views/buyers/inner_screen/edit_profile.dart';
+import 'package:multi_store/views/buyers/inner_screen/search_view.dart';
 import 'package:multi_store/views/buyers/main_screen.dart';
 import 'package:multi_store/views/buyers/nav_screen/cart_screen.dart';
 import 'package:provider/provider.dart';
@@ -36,7 +41,8 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) {return ProductProvider();}), // Cung cấp ProductProvider
-        ChangeNotifierProvider(create: (_) => CartProvider()),      ],
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+        ChangeNotifierProvider(create: (_) => LocationApi()),],
       child: const MyApp(),
     ),
   );
@@ -47,7 +53,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Đảm bảo thanh trạng thái được tùy chỉnh chính xác trên tất cả các thiết bị
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(statusBarColor: Colors.transparent),
     );
@@ -59,7 +64,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         fontFamily: 'Brand-Bold',
       ),
-      home: MainScreen(), // Để hiển thị màn hình chính của người mua
+      home: SignInScreen(),
     );
   }
 }
