@@ -6,9 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:multi_store/provider/cart_provider.dart';
 import 'package:multi_store/provider/location_api.dart';
 import 'package:multi_store/provider/product_provider.dart';
-import 'package:multi_store/vendor/views/auth/vendor_auth_screen.dart';
 import 'package:multi_store/vendor/views/auth/vendor_register_screen.dart';
 import 'package:multi_store/vendor/views/screens/landing_screen.dart';
+import 'package:multi_store/vendor/views/screens/login.dart';
 import 'package:multi_store/vendor/views/screens/main_vendor_screen.dart';
 import 'package:multi_store/vendor/views/screens/upload_screen.dart';
 import 'package:multi_store/views/buyers/auth/login_screen.dart';
@@ -40,9 +40,12 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) {return ProductProvider();}), // Cung cấp ProductProvider
+        ChangeNotifierProvider(create: (_) {
+          return ProductProvider();
+        }), // Cung cấp ProductProvider
         ChangeNotifierProvider(create: (_) => CartProvider()),
-        ChangeNotifierProvider(create: (_) => LocationApi()),],
+        ChangeNotifierProvider(create: (_) => LocationApi()),
+      ],
       child: const MyApp(),
     ),
   );
@@ -64,7 +67,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         fontFamily: 'Brand-Bold',
       ),
-      home: SignInScreen(),
+      home: VendorRegisterScreen(),
     );
   }
 }
