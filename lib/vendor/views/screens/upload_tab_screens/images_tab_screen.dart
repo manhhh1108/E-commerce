@@ -23,16 +23,30 @@ class _ImagesTabScreenState extends State<ImagesTabScreen>
   List<File> _image = [];
   List<String> _imageUrlList = [];
 
-  chooseImage() async {
+  // Chọn hoặc thay thế ảnh
+  Future<void> chooseImage({int? replaceIndex}) async {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile == null) {
       print('No Image Picked');
     } else {
       setState(() {
-        _image.add(File(pickedFile.path));
+        if (replaceIndex != null) {
+          // Thay thế ảnh tại vị trí chỉ định
+          _image[replaceIndex] = File(pickedFile.path);
+        } else {
+          // Thêm ảnh mới
+          _image.add(File(pickedFile.path));
+        }
       });
     }
+  }
+
+  // Xóa ảnh khỏi danh sách
+  void removeImage(int index) {
+    setState(() {
+      _image.removeAt(index);
+    });
   }
 
   @override
@@ -46,7 +60,6 @@ class _ImagesTabScreenState extends State<ImagesTabScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Title for the section
           Text(
             'Select Product Images',
             style: TextStyle(
@@ -57,15 +70,15 @@ class _ImagesTabScreenState extends State<ImagesTabScreen>
           ),
           SizedBox(height: 15),
 
-          // Grid for displaying selected images
+          // Hiển thị ảnh trong lưới
           GridView.builder(
             shrinkWrap: true,
-            itemCount: _image.length + 1, // Add +1 for the "Add Image" button
+            itemCount: _image.length + 1,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
               mainAxisSpacing: 10,
               crossAxisSpacing: 10,
-              childAspectRatio: 1,
+              childAspectRatio: 0.8, // Điều chỉnh tỷ lệ khung hình
             ),
             itemBuilder: (context, index) {
               return index == 0
@@ -84,24 +97,57 @@ class _ImagesTabScreenState extends State<ImagesTabScreen>
                         ),
                       ),
                     )
-                  : ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.file(
-                        _image[index - 1],
-                        fit: BoxFit.cover,
-                      ),
+                  : Column(
+                      children: [
+                        // Hiển thị ảnh
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.file(
+                              _image[index - 1],
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 5),
+
+                        // Nút chỉ có biểu tượng
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                chooseImage(replaceIndex: index - 1);
+                              },
+                              icon: Icon(Icons.edit, color: Colors.blue),
+                              tooltip: 'Edit',
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                removeImage(index - 1);
+                              },
+                              icon: Icon(Icons.delete, color: Colors.red),
+                              tooltip: 'Delete',
+                            ),
+                          ],
+                        ),
+                      ],
                     );
             },
           ),
 
           SizedBox(height: 20),
 
-          // Upload Button
+          // Nút upload ảnh
           if (_image.isNotEmpty)
             Center(
               child: ElevatedButton(
                 onPressed: () async {
                   EasyLoading.show(status: 'Saving Images ...');
+                  _imageUrlList
+                      .clear(); // Đảm bảo danh sách trống trước khi thêm
                   for (var img in _image) {
                     Reference ref =
                         _storage.ref().child('productImage').child(Uuid().v4());
@@ -109,13 +155,14 @@ class _ImagesTabScreenState extends State<ImagesTabScreen>
                       await ref.getDownloadURL().then((value) {
                         setState(() {
                           _imageUrlList.add(value);
-                          _productProvider.getFormData(
-                              imageUrlList: _imageUrlList);
-                          EasyLoading.dismiss();
                         });
                       });
                     });
                   }
+                  // Lưu URL ảnh vào ProductProvider
+                  _productProvider.getFormData(imageUrlList: _imageUrlList);
+                  EasyLoading.dismiss();
+                  EasyLoading.showSuccess('Images uploaded successfully');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.yellow.shade900,

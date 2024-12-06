@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:multi_store/provider/cart_provider.dart';
 import 'package:multi_store/provider/location_api.dart';
 import 'package:multi_store/provider/product_provider.dart';
@@ -17,6 +18,7 @@ import 'package:multi_store/views/buyers/inner_screen/edit_profile.dart';
 import 'package:multi_store/views/buyers/inner_screen/search_view.dart';
 import 'package:multi_store/views/buyers/main_screen.dart';
 import 'package:multi_store/views/buyers/nav_screen/cart_screen.dart';
+import 'package:multi_store/views/buyers/nav_screen/home_screen.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -61,13 +63,14 @@ class MyApp extends StatelessWidget {
     );
 
     return MaterialApp(
+      builder: EasyLoading.init(),
       debugShowCheckedModeBanner: false,
       title: 'Multi Store App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         fontFamily: 'Brand-Bold',
       ),
-      home: VendorRegisterScreen(),
+      home: MainVendorScreen(),
     );
   }
 }

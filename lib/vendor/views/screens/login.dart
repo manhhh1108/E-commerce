@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_store/vendor/views/screens/landing_screen.dart';
 import '../../../utils/show_snackBar.dart';
@@ -33,25 +35,50 @@ class _SignupScreenState extends State<LoginVendorScreen> {
     setState(() {
       isLoading = true;
     });
-    // signup user using our authmethod
+
+    // Đăng nhập người dùng
     String res = await AuthMethod().loginUser(
-        email: emailController.text, password: passwordController.text);
+      email: emailController.text,
+      password: passwordController.text,
+    );
 
     if (res == "success") {
-      setState(() {
-        isLoading = false;
-      });
-      //navigate to the home screen
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => VendorRegisterScreen(),
-        ),
-      );
+      User? user = FirebaseAuth.instance.currentUser;
+
+      if (user != null) {
+        // Kiểm tra trạng thái 'approved' trong Firestore
+        DocumentSnapshot vendorDoc = await FirebaseFirestore.instance
+            .collection('vendors')
+            .doc(user.uid)
+            .get();
+
+        bool isApproved = vendorDoc.exists && (vendorDoc['approved'] ?? false);
+
+        setState(() {
+          isLoading = false;
+        });
+
+        if (isApproved) {
+          // Nếu đã được phê duyệt, điều hướng đến LandingScreen
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => LandingScreen(),
+            ),
+          );
+        } else {
+          // Nếu chưa được phê duyệt, điều hướng đến VendorRegisterScreen
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => VendorRegisterScreen(),
+            ),
+          );
+        }
+      }
     } else {
       setState(() {
         isLoading = false;
       });
-      // show error
+      // Hiển thị lỗi nếu đăng nhập thất bại
       showSnack(context, res);
     }
   }
