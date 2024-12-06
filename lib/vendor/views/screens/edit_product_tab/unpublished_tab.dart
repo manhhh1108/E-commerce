@@ -48,13 +48,11 @@ class UnpublishedTab extends StatelessWidget {
             itemBuilder: ((context, index) {
               final vendorProductData = snapshot.data!.docs[index];
               return InkWell(
-                onTap: (){
+                onTap: () {
                   Navigator.push(context,
-                      MaterialPageRoute(builder: (context){
-                        return VendorProductDetailScreen(productData: vendorProductData,);
-                      })
-
-                  );
+                      MaterialPageRoute(builder: (context) {
+                        return VendorProductDetailScreen(productData: vendorProductData);
+                      }));
                 },
                 child: Slidable(
                   key: ValueKey(vendorProductData.id), // Đảm bảo key là duy nhất
@@ -95,12 +93,29 @@ class UnpublishedTab extends StatelessWidget {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
+                            child: vendorProductData['imageUrl'] != null &&
+                                vendorProductData['imageUrl'].isNotEmpty
+                                ? Image.network(
                               vendorProductData['imageUrl'][0],
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
-                                return Icon(Icons.broken_image, color: Colors.grey);
+                                return Container(
+                                  color: Colors.blue, // Màu nền khi không có ảnh
+                                  child: Icon(
+                                    Icons.image, // Biểu tượng khi không có ảnh
+                                    color: Colors.white,
+                                    size: 40,
+                                  ),
+                                );
                               },
+                            )
+                                : Container(
+                              color: Colors.blue, // Màu nền khi không có ảnh
+                              child: Icon(
+                                Icons.image, // Biểu tượng khi không có ảnh
+                                color: Colors.white,
+                                size: 40,
+                              ),
                             ),
                           ),
                         ),

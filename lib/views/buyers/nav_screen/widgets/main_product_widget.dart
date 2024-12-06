@@ -9,6 +9,7 @@ class MainProductWidget extends StatelessWidget {
         .collection('products')
         .where('approved', isEqualTo: true)
         .snapshots();
+
     return StreamBuilder<QuerySnapshot>(
       stream: _productsStream,
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -71,11 +72,34 @@ class MainProductWidget extends StatelessWidget {
                           topLeft: Radius.circular(12),
                           topRight: Radius.circular(12),
                         ),
-                        child: Image.network(
+                        child: productData['imageUrl'] != null &&
+                            productData['imageUrl'].isNotEmpty
+                            ? Image.network(
                           productData['imageUrl'][0],
                           height: 180,
                           width: double.infinity,
-                          fit: BoxFit.cover,
+                          fit: BoxFit.cover, // Đảm bảo ảnh kín khung
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: 180,
+                              color: Colors.grey.shade300,
+                              child: Icon(
+                                Icons.broken_image,
+                                color: Colors.grey,
+                                size: 40,
+                              ),
+                            );
+                          },
+                        )
+                            : Container(
+                          height: 180,
+                          width: double.infinity,
+                          color: Colors.grey.shade300,
+                          child: Icon(
+                            Icons.image,
+                            color: Colors.grey,
+                            size: 40,
+                          ),
                         ),
                       ),
 
@@ -86,7 +110,7 @@ class MainProductWidget extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              productData['productName'],
+                              productData['productName'] ?? 'No Name',
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -96,7 +120,7 @@ class MainProductWidget extends StatelessWidget {
                             ),
                             SizedBox(height: 4),
                             Text(
-                              '\$${productData['productPrice'].toStringAsFixed(2)}',
+                              '\$${productData['productPrice']?.toStringAsFixed(2) ?? '0.00'}',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,

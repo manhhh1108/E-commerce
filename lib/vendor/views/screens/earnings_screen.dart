@@ -17,11 +17,11 @@ class EarningsScreen extends StatelessWidget {
           style: TextStyle(
             fontSize: 30,
             fontWeight: FontWeight.bold,
-            letterSpacing: 7,
-            color: Colors.white, // Đổi màu chữ thành màu trắng
+            letterSpacing: 2,
+            color: Colors.white,
           ),
         ),
-        centerTitle: true, // Đảm bảo title được căn giữa
+        centerTitle: true,
       ),
       body: FutureBuilder<DocumentSnapshot>(
         future: FirebaseFirestore.instance.collection('vendors').doc(vendorId).get(),
@@ -40,147 +40,143 @@ class EarningsScreen extends StatelessWidget {
 
           final vendorData = snapshot.data!.data() as Map<String, dynamic>;
           final storeName = vendorData['businessName'] ?? 'No Store Name';
-          final storeImg = vendorData['image'] ?? 'https://via.placeholder.com/150'; // URL placeholder nếu không có ảnh
+          final storeImg = vendorData['image'] ??
+              'https://via.placeholder.com/150'; // Placeholder nếu không có ảnh
 
-          return Column(
-            children: [
-              // Hiển thị thông tin cửa hàng
-              Container(
-                color: Colors.grey.shade200,
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    // Ảnh đại diện
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundImage: NetworkImage(storeImg),
-                      onBackgroundImageError: (error, stackTrace) => const Icon(
-                        Icons.store,
-                        size: 30,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    // Tên cửa hàng
-                    Expanded(
-                      child: Text(
-                        storeName,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Tạo khoảng cách giữa AppBar và các khung
-              SizedBox(height: 80), // Khoảng cách giữa AppBar và các khung
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                // Thông tin cửa hàng
+                _buildStoreInfo(storeImg, storeName),
+                const SizedBox(height: 20),
 
-              // Hiển thị tổng số tiền và số lượng đã bán
-              FutureBuilder<QuerySnapshot>(
-                future: FirebaseFirestore.instance
-                    .collection('orders')
-                    .where('vendorIds', isEqualTo: vendorId)
-                    .get(),
-                builder: (context, ordersSnapshot) {
-                  if (ordersSnapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  double totalAmount = 0.0;
-                  int totalQuantity = 0;
-
-                  // Tính tổng số tiền và số lượng đã bán từ bảng orders
-                  for (var order in ordersSnapshot.data!.docs) {
-                    final productPrice = order['productPrice']; // productPrice có thể là num
-                    final quantity = order['quantity']; // quantity có thể là num
-
-                    // Kiểm tra và ép kiểu đúng
-                    if (productPrice is num && quantity is num) {
-                      totalAmount += (productPrice.toDouble() * quantity.toDouble());
-                      totalQuantity += quantity.toInt();
+                // Hiển thị tổng số tiền và số lượng đã bán
+                FutureBuilder<QuerySnapshot>(
+                  future: FirebaseFirestore.instance
+                      .collection('orders')
+                      .where('vendorIds', arrayContains: vendorId) // Lọc đơn hàng theo vendorId
+                      .get(),
+                  builder: (context, ordersSnapshot) {
+                    if (ordersSnapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
                     }
-                  }
 
-                  // Nếu không có đơn hàng, mặc định giá trị là 0
-                  if (ordersSnapshot.data!.docs.isEmpty) {
-                    totalAmount = 0.0;
-                    totalQuantity = 0;
-                  }
+                    double totalEarnings = 0.0;
+                    int totalItemsSold = 0;
 
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.center, // Căn giữa các khung
-                    children: [
-                      // Khung tổng thu nhập với chiều cao và chiều rộng cố định
-                      Container(
-                        width: MediaQuery.of(context).size.width - 120, // Chiều rộng cố định (width - padding)
-                        height: 150, // Chiều cao cố định
-                        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Khoảng cách giữa các khung
-                        decoration: BoxDecoration(
+                    if (ordersSnapshot.hasData) {
+                      for (var order in ordersSnapshot.data!.docs) {
+                        final orderData = order.data() as Map<String, dynamic>;
+                        final cartItems = orderData['cartItems'] as List<dynamic>? ?? [];
+
+                        // Duyệt qua từng item trong cartItems
+                        for (var item in cartItems) {
+                          if (item is Map<String, dynamic>) {
+                            final productPrice = item['productPrice'] ?? 0.0;
+                            final quantity = item['quantity'] ?? 0;
+
+                            // Kiểm tra nếu dữ liệu là số hợp lệ
+                            if (productPrice is num && quantity is num) {
+                              // Kiểm tra nếu vendorId của sản phẩm trong cartItem khớp với vendorId hiện tại
+                              final itemVendorIds = List<String>.from(item['vendorIds'] ?? []);
+
+                              // Nếu vendorId của sản phẩm trùng với vendorId hiện tại
+                              if (itemVendorIds.contains(vendorId)) {
+                                totalEarnings += productPrice * quantity; // Tính thu nhập
+                                totalItemsSold += quantity.toInt(); // Tính số lượng đã bán
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+
+                    return Column(
+                      children: [
+                        _buildEarningsCard(
+                          context,
+                          title: 'Total Earnings',
+                          value: '\$${totalEarnings.toStringAsFixed(2)}',
                           color: Colors.yellow.shade900,
-                          borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Total Earnings',
-                              style: TextStyle(fontSize: 18, color: Colors.white),
-                            ),
-                            SizedBox(height: 10),
-                            Text(
-                              '\$${totalAmount.toStringAsFixed(2)}',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Khoảng cách giữa 2 khung
-                      SizedBox(height: 120),
-
-                      // Khung tổng số lượng hàng bán được với chiều cao và chiều rộng cố định
-                      Container(
-                        width: MediaQuery.of(context).size.width - 120, // Chiều rộng cố định (width - padding)
-                        height: 150, // Chiều cao cố định
-                        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Khoảng cách giữa các khung
-                        decoration: BoxDecoration(
+                        const SizedBox(height: 20),
+                        _buildEarningsCard(
+                          context,
+                          title: 'Total Items Sold',
+                          value: '$totalItemsSold',
                           color: Colors.yellow.shade900,
-                          borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Total Items Sold',
-                              style: TextStyle(fontSize: 18, color: Colors.white),
-                            ),
-                            SizedBox(height: 10),
-                            Text(
-                              '$totalQuantity',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ],
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildStoreInfo(String storeImg, String storeName) {
+    return Container(
+      color: Colors.grey.shade200,
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 30,
+            backgroundImage: NetworkImage(storeImg),
+            onBackgroundImageError: (error, stackTrace) => const Icon(
+              Icons.store,
+              size: 30,
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              storeName,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEarningsCard(BuildContext context,
+      {required String title, required String value, required Color color}) {
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.8,
+      height: 150,
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 18, color: Colors.white),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ],
       ),
     );
   }

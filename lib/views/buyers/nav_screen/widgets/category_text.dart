@@ -15,7 +15,8 @@ class _CategoryTextState extends State<CategoryText> {
   @override
   Widget build(BuildContext context) {
     final Stream<QuerySnapshot> _categoryStream =
-        FirebaseFirestore.instance.collection('categories').snapshots();
+    FirebaseFirestore.instance.collection('categories').snapshots();
+
     return Padding(
       padding: const EdgeInsets.all(9.0),
       child: Column(
@@ -50,34 +51,44 @@ class _CategoryTextState extends State<CategoryText> {
                         itemCount: snapshot.data!.docs.length,
                         itemBuilder: (context, index) {
                           final categoryData = snapshot.data!.docs[index];
+                          final isSelected =
+                              categoryData['categoryName'] == _selectedCategory;
+
                           return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4.0), // Khoảng cách giữa các chip
+                            padding: const EdgeInsets.symmetric(horizontal: 4.0),
                             child: ActionChip(
-                              backgroundColor: Colors.orange, // Màu nền của chip
+                              backgroundColor: isSelected
+                                  ? Colors.black
+                                  : Colors.orange, // Đổi màu nếu được chọn
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0), // Viền bo tròn
+                                borderRadius: BorderRadius.circular(8.0),
                               ),
                               onPressed: () {
                                 setState(() {
-                                  _selectedCategory = categoryData['categoryName'];
+                                  if (isSelected) {
+                                    // Nếu đang chọn, nhấn lại để bỏ chọn
+                                    _selectedCategory = null;
+                                  } else {
+                                    // Chọn danh mục mới
+                                    _selectedCategory =
+                                    categoryData['categoryName'];
+                                  }
                                 });
-                                print(_selectedCategory);
                               },
                               label: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10.0), // Thêm padding nội bộ
-                                constraints: BoxConstraints(
-                                  minWidth: 40, // Đảm bảo chiều rộng tối thiểu
-                                  minHeight: 40, // Đảm bảo chiều cao tối thiểu đồng nhất
-                                ),
-                                alignment: Alignment.center, // Căn giữa cả chiều ngang và dọc
+                                alignment: Alignment.center,
+                                width: 50, // Đặt chiều rộng cố định
+                                height: 20, // Đặt chiều cao cố định
                                 child: Text(
                                   categoryData['categoryName'],
-                                  textAlign: TextAlign.center, // Căn giữa văn bản
+                                  textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 20,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.bold,
                                   ),
+                                  maxLines: 1, // Đảm bảo chỉ hiển thị 1 dòng
+                                  overflow: TextOverflow.ellipsis, // Cắt bớt nếu quá dài
                                 ),
                               ),
                             ),
@@ -87,24 +98,24 @@ class _CategoryTextState extends State<CategoryText> {
                     ),
                     IconButton(
                       onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context){
-                          return CategoriesScreen();
-
-                        }));
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) {
+                              return CategoriesScreen();
+                            }));
                       },
                       icon: Icon(Icons.arrow_forward_ios),
-                    )
+                    ),
                   ],
                 ),
               );
             },
           ),
-          if(_selectedCategory == null)
+          if (_selectedCategory == null)
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: MainProductWidget(),
             ),
-          if(_selectedCategory != null)
+          if (_selectedCategory != null)
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: HomeProductsWidget(categoryName: _selectedCategory!),
