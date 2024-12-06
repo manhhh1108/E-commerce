@@ -7,6 +7,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:multi_store/provider/product_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import '../../auth/login.dart';
 
 class ImagesTabScreen extends StatefulWidget {
   @override
@@ -53,7 +56,25 @@ class _ImagesTabScreenState extends State<ImagesTabScreen>
   Widget build(BuildContext context) {
     super.build(context);
     final ProductProvider _productProvider =
-        Provider.of<ProductProvider>(context);
+    Provider.of<ProductProvider>(context);
+
+    final user = FirebaseAuth.instance.currentUser;
+
+    // Kiểm tra nếu người dùng chưa đăng nhập
+    if (user == null) {
+      // Nếu người dùng chưa đăng nhập, hiển thị nút Login
+      return Center(
+        child: TextButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => LoginVendorScreen()), // Điều hướng tới LoginVendorScreen
+            );
+          },
+          child: Text('Login to Continue', style: TextStyle(fontSize: 18)),
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.all(20.0),
@@ -83,58 +104,58 @@ class _ImagesTabScreenState extends State<ImagesTabScreen>
             itemBuilder: (context, index) {
               return index == 0
                   ? GestureDetector(
-                      onTap: chooseImage,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.grey.shade400),
-                        ),
-                        child: Icon(
-                          Icons.add,
-                          size: 50,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    )
+                onTap: chooseImage,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.grey.shade400),
+                  ),
+                  child: Icon(
+                    Icons.add,
+                    size: 50,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              )
                   : Column(
-                      children: [
-                        // Hiển thị ảnh
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.file(
-                              _image[index - 1],
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: double.infinity,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 5),
+                children: [
+                  // Hiển thị ảnh
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.file(
+                        _image[index - 1],
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 5),
 
-                        // Nút chỉ có biểu tượng
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            IconButton(
-                              onPressed: () {
-                                chooseImage(replaceIndex: index - 1);
-                              },
-                              icon: Icon(Icons.edit, color: Colors.blue),
-                              tooltip: 'Edit',
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                removeImage(index - 1);
-                              },
-                              icon: Icon(Icons.delete, color: Colors.red),
-                              tooltip: 'Delete',
-                            ),
-                          ],
-                        ),
-                      ],
-                    );
+                  // Nút chỉ có biểu tượng
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          chooseImage(replaceIndex: index - 1);
+                        },
+                        icon: Icon(Icons.edit, color: Colors.blue),
+                        tooltip: 'Edit',
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          removeImage(index - 1);
+                        },
+                        icon: Icon(Icons.delete, color: Colors.red),
+                        tooltip: 'Delete',
+                      ),
+                    ],
+                  ),
+                ],
+              );
             },
           ),
 
@@ -146,11 +167,10 @@ class _ImagesTabScreenState extends State<ImagesTabScreen>
               child: ElevatedButton(
                 onPressed: () async {
                   EasyLoading.show(status: 'Saving Images ...');
-                  _imageUrlList
-                      .clear(); // Đảm bảo danh sách trống trước khi thêm
+                  _imageUrlList.clear(); // Đảm bảo danh sách trống trước khi thêm
                   for (var img in _image) {
                     Reference ref =
-                        _storage.ref().child('productImage').child(Uuid().v4());
+                    _storage.ref().child('productImage').child(Uuid().v4());
                     await ref.putFile(img).whenComplete(() async {
                       await ref.getDownloadURL().then((value) {
                         setState(() {

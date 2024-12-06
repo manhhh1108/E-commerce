@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_store/vendor/models/vendor_user_models.dart';
 import 'package:multi_store/vendor/views/auth/vendor_register_screen.dart';
-import 'package:multi_store/vendor/views/screens/login.dart';
+import 'package:multi_store/vendor/views/auth/login.dart';
 import 'package:multi_store/vendor/views/screens/main_vendor_screen.dart';
 
 class LandingScreen extends StatelessWidget {

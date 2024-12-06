@@ -50,7 +50,7 @@ class CategoriesScreen extends StatelessWidget {
                 return GestureDetector(
                   onTap: () {
                     Navigator.push(context, MaterialPageRoute(builder: (context) {
-                      return AllProductScreen(categoryData: categoryData,);
+                      return AllProductScreen(categoryData: categoryData);
                     }));
                   },
                   child: Card(
@@ -68,7 +68,9 @@ class CategoriesScreen extends StatelessWidget {
                               width: double.infinity,
                               decoration: BoxDecoration(
                                 image: DecorationImage(
-                                  image: NetworkImage(categoryData['image']),
+                                  image: NetworkImage(
+                                    categoryData['image'] ?? '', // Kiểm tra nếu không có ảnh
+                                  ),
                                   fit: BoxFit.cover, // Làm ảnh phủ toàn bộ thẻ
                                 ),
                                 borderRadius: BorderRadius.only(
@@ -76,6 +78,15 @@ class CategoriesScreen extends StatelessWidget {
                                   topRight: Radius.circular(15),
                                 ),
                               ),
+                              child: categoryData['image'] == null || categoryData['image'] == ''
+                                  ? Center(
+                                child: Icon(
+                                  Icons.image_not_supported,
+                                  color: Colors.white,
+                                  size: 50,
+                                ),
+                              ) // Placeholder icon if image is missing
+                                  : SizedBox.shrink(),
                             ),
                           ),
                           // Tên danh mục

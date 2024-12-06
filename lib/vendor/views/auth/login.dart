@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:multi_store/vendor/views/screens/landing_screen.dart';
 import '../../../utils/show_snackBar.dart';
 import '../../controllers/authentication.dart';
-import '../auth/vendor_register_screen.dart';
+import 'vendor_register_screen.dart';
 import '../forget_password/forgot_password.dart';
 import '../phoneAuth/phone_login.dart';
 import 'signup.dart';
-import 'widgets/button.dart';
-import 'widgets/text_field.dart';
+import '../screens/widgets/button.dart';
+import '../screens/widgets/text_field.dart';
 
 class LoginVendorScreen extends StatefulWidget {
   const LoginVendorScreen({super.key});

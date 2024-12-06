@@ -149,7 +149,9 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
                     onPressed: () {
                       Navigator.push(context,
                           MaterialPageRoute(builder: (context) {
-                        return EditProfile(userData: data,);
+                        return EditProfile(
+                          userData: data,
+                        );
                       }));
                     },
                     child: Text('Enter Address'))
@@ -160,10 +162,9 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
                         EasyLoading.show(status: 'Placing Order');
                         final orderId =
                             const Uuid().v4(); // Tạo mã đơn hàng duy nhất
-                        final orderDate =
-                            DateTime.now();
+                        final orderDate = DateTime.now();
 
-                        // Chuẩn bị dữ liệu giỏ hàng
+                        // Chuẩn bị dữ liệu giỏ hàng, thêm vendorId vào từng cartItem
                         List<Map<String, dynamic>> cartItemsData =
                             _cartProvider.getCartItem.values
                                 .map((item) => {
@@ -174,6 +175,8 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
                                       'quantity': item.quantity,
                                       'productSize': item.productSize,
                                       'totalPrice': item.price * item.quantity,
+                                      'vendorId': item
+                                          .vendorId, // Thêm vendorId vào từng sản phẩm
                                     })
                                 .toList();
 
@@ -194,7 +197,7 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
                           'totalOrderPrice':
                               _cartProvider.totalPrice, // Tổng tiền cả giỏ hàng
                           'cartItems':
-                              cartItemsData, // Danh sách các sản phẩm trong giỏ
+                              cartItemsData, // Danh sách các sản phẩm trong giỏ hàng
                         }).whenComplete(() {
                           setState(() {
                             _cartProvider.getCartItem.clear();

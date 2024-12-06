@@ -9,7 +9,7 @@ import 'package:multi_store/provider/location_api.dart';
 import 'package:multi_store/provider/product_provider.dart';
 import 'package:multi_store/vendor/views/auth/vendor_register_screen.dart';
 import 'package:multi_store/vendor/views/screens/landing_screen.dart';
-import 'package:multi_store/vendor/views/screens/login.dart';
+import 'package:multi_store/vendor/views/auth/login.dart';
 import 'package:multi_store/vendor/views/screens/main_vendor_screen.dart';
 import 'package:multi_store/vendor/views/screens/upload_screen.dart';
 import 'package:multi_store/views/buyers/auth/login_screen.dart';

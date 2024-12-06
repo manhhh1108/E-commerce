@@ -2,6 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_store/provider/product_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import '../../auth/login.dart';
 
 class GeneralScreen extends StatefulWidget {
   @override
@@ -55,8 +58,26 @@ class _GeneralScreenState extends State<GeneralScreen> with AutomaticKeepAliveCl
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final ProductProvider _productProvider =
-        Provider.of<ProductProvider>(context);
+
+    // Kiểm tra người dùng đã đăng nhập chưa
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      // Nếu người dùng chưa đăng nhập, hiển thị nút Login
+      return Center(
+        child: TextButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => LoginVendorScreen()), // Điều hướng tới LoginVendorScreen
+            );
+          },
+          child: Text('Login to Continue', style: TextStyle(fontSize: 18)),
+        ),
+      );
+    }
+
+    final ProductProvider _productProvider = Provider.of<ProductProvider>(context);
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(10.0),
@@ -104,7 +125,7 @@ class _GeneralScreenState extends State<GeneralScreen> with AutomaticKeepAliveCl
                   _productProvider.getFormData(quantity: int.parse(value));
                 },
                 decoration:
-                    InputDecoration(labelText: 'Enter Product Quantity'),
+                InputDecoration(labelText: 'Enter Product Quantity'),
               ),
               SizedBox(height: 30),
               DropdownButtonFormField(
@@ -152,13 +173,13 @@ class _GeneralScreenState extends State<GeneralScreen> with AutomaticKeepAliveCl
                     child: Text(
                       'Selected Date:',
                       style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ),
                   Expanded(
                     child: Container(
                       padding:
-                          EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                      EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey),
                         borderRadius: BorderRadius.circular(8),

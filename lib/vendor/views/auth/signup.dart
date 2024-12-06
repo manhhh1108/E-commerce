@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../utils/show_snackBar.dart';
 import '../../controllers/authentication.dart';
 import 'login.dart';
-import 'widgets/button.dart';
-import 'widgets/text_field.dart';
+import '../screens/widgets/button.dart';
+import '../screens/widgets/text_field.dart';
 
 class SignupVendorScreen extends StatefulWidget {
   const SignupVendorScreen({super.key});
