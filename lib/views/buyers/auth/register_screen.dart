@@ -25,14 +25,13 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
 
   bool _isLoading = false;
   Uint8List? _image;
-  bool _imageSelected = false;
 
   _signUpUser() async {
     setState(() {
       _isLoading = true;
     });
 
-    if (_formKey.currentState!.validate() && _image != null) {
+    if (_formKey.currentState!.validate()) {
       try {
         // Đăng ký người dùng với Firebase Authentication
         UserCredential userCredential =
@@ -41,19 +40,22 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
           password: password,
         );
 
-        // Tải ảnh lên Firebase Storage
-        String fileName =
-            '${userCredential.user!.uid}_profile.jpg'; // Tên file ảnh duy nhất
-        Reference storageRef =
-        FirebaseStorage.instance.ref().child('profile_images/$fileName');
-        UploadTask uploadTask = storageRef.putData(_image!);
+        String imageUrl = '';
+        if (_image != null) {
+          // Tải ảnh lên Firebase Storage
+          String fileName = '${userCredential.user!.uid}_profile.jpg';
+          Reference storageRef =
+          FirebaseStorage.instance.ref().child('profile_images/$fileName');
+          UploadTask uploadTask = storageRef.putData(_image!);
 
-        TaskSnapshot snapshot = await uploadTask.whenComplete(() {});
+          TaskSnapshot snapshot = await uploadTask.whenComplete(() {});
+          imageUrl = await snapshot.ref.getDownloadURL();
+        } else {
+          // Sử dụng ảnh mặc định
+          imageUrl = 'assets/images/default_profile.png';
+        }
 
-        // Lấy URL ảnh đã tải lên
-        String imageUrl = await snapshot.ref.getDownloadURL();
-
-        // Lưu thông tin người dùng vào Firestore, bao gồm cả URL ảnh
+        // Lưu thông tin người dùng vào Firestore
         String uid = userCredential.user!.uid;
         await FirebaseFirestore.instance.collection('buyers').doc(uid).set({
           'fullName': fullName,
@@ -87,17 +89,8 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
     } else {
       setState(() {
         _isLoading = false;
-        if (_image == null) {
-          _imageSelected = false;
-          showSnack(context, 'Please select a profile image');
-        } else {
-          _imageSelected = true;
-        }
       });
-
-      if (!_formKey.currentState!.validate()) {
-        showSnack(context, 'Please fill in all fields');
-      }
+      showSnack(context, 'Please fill in all fields');
     }
   }
 
@@ -106,21 +99,21 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Select Image"),
+          title: const Text("Select Image"),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: Icon(CupertinoIcons.photo),
-                title: Text("Select from library"),
+                leading: const Icon(CupertinoIcons.photo),
+                title: const Text("Select from library"),
                 onTap: () async {
                   Navigator.of(context).pop();
                   selectGalleryImage();
                 },
               ),
               ListTile(
-                leading: Icon(CupertinoIcons.camera),
-                title: Text("Take a photo with the camera"),
+                leading: const Icon(CupertinoIcons.camera),
+                title: const Text("Take a photo with the camera"),
                 onTap: () async {
                   Navigator.of(context).pop();
                   selectCameraImage();
@@ -128,8 +121,8 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
               ),
               if (_image != null)
                 ListTile(
-                  leading: Icon(CupertinoIcons.trash),
-                  title: Text("Delete photo"),
+                  leading: const Icon(CupertinoIcons.trash),
+                  title: const Text("Delete photo"),
                   onTap: () {
                     setState(() {
                       _image = null;
@@ -148,7 +141,6 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
     Uint8List im = await _authController.pickProfileImage(ImageSource.gallery);
     setState(() {
       _image = im;
-      _imageSelected = true; // Đánh dấu đã chọn ảnh
     });
   }
 
@@ -156,7 +148,6 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
     Uint8List im = await _authController.pickProfileImage(ImageSource.camera);
     setState(() {
       _image = im;
-      _imageSelected = true; // Đánh dấu đã chọn ảnh
     });
   }
 
@@ -170,7 +161,7 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
+                const Text(
                   "Create Customer's Account",
                   style: TextStyle(
                     fontSize: 20,
@@ -178,24 +169,22 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
                 ),
                 Stack(
                   children: [
-                    _image != null
-                        ? CircleAvatar(
+                    CircleAvatar(
                       radius: 64,
                       backgroundColor: Colors.yellow.shade900,
-                      backgroundImage: MemoryImage(_image!),
-                    )
-                        : CircleAvatar(
-                      radius: 64,
-                      backgroundColor: Colors.yellow.shade900,
+                      backgroundImage: _image != null
+                          ? MemoryImage(_image!)
+                          : const AssetImage('assets/images/default_profile.png')
+                      as ImageProvider,
                     ),
                     Positioned(
                       right: 0,
                       top: 0,
                       child: IconButton(
                         onPressed: () {
-                          selectImage(); // Hiển thị dialog chọn ảnh
+                          selectImage();
                         },
-                        icon: Icon(
+                        icon: const Icon(
                           CupertinoIcons.photo,
                           color: Colors.black,
                         ),
@@ -203,21 +192,14 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
                     ),
                   ],
                 ),
-                if (!_imageSelected)
-                  Text(
-                    'Please select a profile image',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                 Padding(
                   padding: const EdgeInsets.all(13.0),
                   child: TextFormField(
                     validator: (value) {
                       if (value!.isEmpty) {
                         return 'Email must not be empty';
-                      } else if (!RegExp(r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+').hasMatch(value)) {
+                      } else if (!RegExp(r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+')
+                          .hasMatch(value)) {
                         return 'Please enter a valid email';
                       }
                       return null;
@@ -225,7 +207,7 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
                     onChanged: (value) {
                       email = value;
                     },
-                    decoration: InputDecoration(labelText: 'Enter Email'),
+                    decoration: const InputDecoration(labelText: 'Enter Email'),
                   ),
                 ),
                 Padding(
@@ -240,7 +222,8 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
                     onChanged: (value) {
                       fullName = value;
                     },
-                    decoration: InputDecoration(labelText: 'Enter Full Name'),
+                    decoration:
+                    const InputDecoration(labelText: 'Enter Full Name'),
                   ),
                 ),
                 Padding(
@@ -255,7 +238,8 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
                     onChanged: (value) {
                       phoneNumber = value;
                     },
-                    decoration: InputDecoration(labelText: 'Enter Phone Number'),
+                    decoration: const InputDecoration(
+                        labelText: 'Enter Phone Number'),
                   ),
                 ),
                 Padding(
@@ -271,10 +255,11 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
                     onChanged: (value) {
                       password = value;
                     },
-                    decoration: InputDecoration(labelText: 'Password'),
+                    decoration:
+                    const InputDecoration(labelText: 'Enter Password'),
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 20,
                 ),
                 GestureDetector(
@@ -290,10 +275,10 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
                     ),
                     child: Center(
                       child: _isLoading
-                          ? CircularProgressIndicator(
+                          ? const CircularProgressIndicator(
                         color: Colors.white,
                       )
-                          : Text(
+                          : const Text(
                         'Register',
                         style: TextStyle(
                             color: Colors.white,
@@ -307,7 +292,7 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Already Have An Account ?'),
+                    const Text('Already Have An Account?'),
                     TextButton(
                         onPressed: () {
                           Navigator.push(
@@ -317,7 +302,7 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
                             }),
                           );
                         },
-                        child: Text('Login')),
+                        child: const Text('Login')),
                   ],
                 ),
               ],
