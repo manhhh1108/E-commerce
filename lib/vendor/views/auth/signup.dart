@@ -69,7 +69,7 @@ class _SignupScreenState extends State<SignupVendorScreen> {
           children: [
             SizedBox(
               height: height / 2.8,
-              child: Image.asset('images/signup.jpeg'),
+              // child: Image.asset('images/signup.jpeg'),
             ),
             TextFieldInput(
                 icon: Icons.person,
@@ -88,27 +88,33 @@ class _SignupScreenState extends State<SignupVendorScreen> {
               textInputType: TextInputType.text,
               isPass: true,
             ),
-            MyButtons(onTap: signupUser, text: "Sign Up"),
-            const SizedBox(height: 50),
+            MyButtons(onTap: signupUser, text: "Register"),
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center, // Căn giữa
               children: [
-                const Text("Already have an account?"),
+                Text(
+                  "Already have an account? ",
+                  style: TextStyle(fontSize: 16),
+                ),
                 GestureDetector(
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => const LoginVendorScreen(),
+                        builder: (context) => LoginVendorScreen(),
                       ),
                     );
                   },
-                  child: const Text(
-                    " Login",
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  child: Text(
+                    "Login",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.blue, // Thêm màu nếu cần
+                    ),
                   ),
-                )
+                ),
               ],
-            )
+            ),
           ],
         ),
       )),

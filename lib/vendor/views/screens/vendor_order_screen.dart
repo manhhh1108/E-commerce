@@ -39,7 +39,6 @@ class VendorOrderScreen extends StatelessWidget {
     // Lấy danh sách đơn hàng từ Firestore
     final Stream<QuerySnapshot> _ordersStream = FirebaseFirestore.instance
         .collection('orders')
-        .where('vendorId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
         .snapshots();
 
     return Scaffold(

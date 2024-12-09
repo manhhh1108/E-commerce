@@ -128,11 +128,14 @@ class _SignupScreenState extends State<LoginVendorScreen> {
             // PhoneAuthentication(),
             // Don't have an account? got to signup screen
             Padding(
-              padding: EdgeInsets.only(top: 10, left: 100),
+              padding: const EdgeInsets.only(top: 10),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center, // Căn giữa
                 children: [
-                  Center(child: Text("Don't have an account? ")),
+                  Text(
+                    "Don't have an account? ",
+                    style: TextStyle(fontSize: 16),
+                  ),
                   GestureDetector(
                     onTap: () {
                       Navigator.of(context).push(
@@ -143,9 +146,13 @@ class _SignupScreenState extends State<LoginVendorScreen> {
                     },
                     child: Text(
                       "SignUp",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.blue, // Thêm màu nếu cần
+                      ),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
