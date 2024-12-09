@@ -15,6 +15,7 @@ class EarningsScreen extends StatelessWidget {
     if (user == null) {
       return Scaffold(
         appBar: AppBar(
+          iconTheme: IconThemeData(color: Colors.white),
           backgroundColor: Colors.yellow.shade900,
           title: const Text(
             'Earnings',

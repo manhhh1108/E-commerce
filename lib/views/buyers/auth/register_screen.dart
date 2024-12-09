@@ -33,20 +33,19 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
     });
 
     if (_formKey.currentState!.validate() && _image != null) {
-      setState(() {
-        _imageSelected = true;
-      });
-
       try {
         // Đăng ký người dùng với Firebase Authentication
-        UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        UserCredential userCredential =
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: email,
           password: password,
         );
 
         // Tải ảnh lên Firebase Storage
-        String fileName = '${userCredential.user!.uid}_profile.jpg'; // Tên file ảnh duy nhất
-        Reference storageRef = FirebaseStorage.instance.ref().child('profile_images/$fileName');
+        String fileName =
+            '${userCredential.user!.uid}_profile.jpg'; // Tên file ảnh duy nhất
+        Reference storageRef =
+        FirebaseStorage.instance.ref().child('profile_images/$fileName');
         UploadTask uploadTask = storageRef.putData(_image!);
 
         TaskSnapshot snapshot = await uploadTask.whenComplete(() {});
@@ -102,8 +101,6 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
     }
   }
 
-
-
   selectImage() async {
     showDialog(
       context: context,
@@ -151,6 +148,7 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
     Uint8List im = await _authController.pickProfileImage(ImageSource.gallery);
     setState(() {
       _image = im;
+      _imageSelected = true; // Đánh dấu đã chọn ảnh
     });
   }
 
@@ -158,6 +156,7 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
     Uint8List im = await _authController.pickProfileImage(ImageSource.camera);
     setState(() {
       _image = im;
+      _imageSelected = true; // Đánh dấu đã chọn ảnh
     });
   }
 
@@ -191,7 +190,7 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
                     ),
                     Positioned(
                       right: 0,
-                      top: 0, // Điều chỉnh vị trí icon theo nhu cầu
+                      top: 0,
                       child: IconButton(
                         onPressed: () {
                           selectImage(); // Hiển thị dialog chọn ảnh
@@ -217,10 +216,11 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
                   child: TextFormField(
                     validator: (value) {
                       if (value!.isEmpty) {
-                        return 'Please email must be not empty';
-                      } else {
-                        return null;
+                        return 'Email must not be empty';
+                      } else if (!RegExp(r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+').hasMatch(value)) {
+                        return 'Please enter a valid email';
                       }
+                      return null;
                     },
                     onChanged: (value) {
                       email = value;
@@ -233,10 +233,9 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
                   child: TextFormField(
                     validator: (value) {
                       if (value!.isEmpty) {
-                        return 'Please full name must be not empty';
-                      } else {
-                        return null;
+                        return 'Full name must not be empty';
                       }
+                      return null;
                     },
                     onChanged: (value) {
                       fullName = value;
@@ -249,16 +248,14 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
                   child: TextFormField(
                     validator: (value) {
                       if (value!.isEmpty) {
-                        return 'Please phone number must be not empty';
-                      } else {
-                        return null;
+                        return 'Phone number must not be empty';
                       }
+                      return null;
                     },
                     onChanged: (value) {
                       phoneNumber = value;
                     },
-                    decoration:
-                    InputDecoration(labelText: 'Enter Phone Number'),
+                    decoration: InputDecoration(labelText: 'Enter Phone Number'),
                   ),
                 ),
                 Padding(
@@ -267,10 +264,9 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
                     obscureText: true,
                     validator: (value) {
                       if (value!.isEmpty) {
-                        return 'Please password must be not empty';
-                      } else {
-                        return null;
+                        return 'Password must not be empty';
                       }
+                      return null;
                     },
                     onChanged: (value) {
                       password = value;

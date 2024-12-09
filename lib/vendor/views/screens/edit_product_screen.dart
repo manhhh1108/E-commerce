@@ -10,41 +10,42 @@ class EditProductScreen extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        appBar: AppBar(
-          centerTitle: true,
-          elevation: 0,
-          backgroundColor: Colors.yellow.shade900,
-          title: Text(
-            'Manage Products',
-            style: TextStyle(
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 7,
-              color: Colors.white,
+          appBar: AppBar(
+            centerTitle: true,
+            elevation: 0,
+            iconTheme: IconThemeData(color: Colors.white),
+            backgroundColor: Colors.yellow.shade900,
+            title: Text(
+              'Manage Products',
+              style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 7,
+                color: Colors.white,
+              ),
+            ),
+            bottom: TabBar(
+              tabs: [
+                Tab(
+                  child: Text(
+                    'Published',
+                    style: TextStyle(color: Colors.white, fontSize: 18),
+                  ),
+                ),
+                Tab(
+                  child: Text(
+                    'Unpublished',
+                    style: TextStyle(
+                        color: Colors.white, fontSize: 18), // Màu trắng cho tab
+                  ),
+                ),
+              ],
             ),
           ),
-          bottom: TabBar(
-            tabs: [
-              Tab(
-                child: Text(
-                  'Published',
-                  style: TextStyle(color: Colors.white,fontSize: 18),
-                ),
-              ),
-              Tab(
-                child: Text(
-                  'Unpublished',
-                  style: TextStyle(color: Colors.white,fontSize: 18), // Màu trắng cho tab
-                ),
-              ),
-            ],
-          ),
-        ),
-        body:TabBarView(children: [
-          PublishedTab(),
-          UnpublishedTab(),
-        ])
-      ),
+          body: TabBarView(children: [
+            PublishedTab(),
+            UnpublishedTab(),
+          ])),
     );
   }
 }

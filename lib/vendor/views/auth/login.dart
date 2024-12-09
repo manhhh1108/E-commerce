@@ -125,7 +125,7 @@ class _SignupScreenState extends State<LoginVendorScreen> {
               ],
             ),
             // for phone authentication
-            PhoneAuthentication(),
+            // PhoneAuthentication(),
             // Don't have an account? got to signup screen
             Padding(
               padding: EdgeInsets.only(top: 10, left: 100),
