@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:multi_store/vendor/views/screens/vendor_inner_screen/withdrawal_screen.dart';
 
 import '../auth/login.dart';
 
@@ -144,12 +145,36 @@ class EarningsScreen extends StatelessWidget {
                           value: '\$${totalEarnings.toStringAsFixed(2)}',
                           color: Colors.yellow.shade900,
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: 20),
                         _buildEarningsCard(
                           context,
                           title: 'Total Items Sold',
                           value: '$totalItemsSold',
                           color: Colors.yellow.shade900,
+                        ),
+                        const SizedBox(height: 20),
+                        // Thêm nút Withdrawal
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (context){
+                              return WithdrawalScreen();
+                            }));
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.yellow.shade900, // Màu nút
+                            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          child: const Text(
+                            "Request Withdrawal",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white
+                            ),
+                          ),
                         ),
                       ],
                     );

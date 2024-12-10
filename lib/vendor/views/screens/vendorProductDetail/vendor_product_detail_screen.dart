@@ -47,12 +47,11 @@ class _VendorProductDetailScreenState extends State<VendorProductDetailScreen> {
     try {
       // Get categories collection from Firestore
       QuerySnapshot snapshot =
-      await FirebaseFirestore.instance.collection('categories').get();
+          await FirebaseFirestore.instance.collection('categories').get();
 
       // Map the category names to the categories list
-      List<String> fetchedCategories = snapshot.docs
-          .map((doc) => doc['categoryName'] as String)
-          .toList();
+      List<String> fetchedCategories =
+          snapshot.docs.map((doc) => doc['categoryName'] as String).toList();
 
       setState(() {
         categories = fetchedCategories;
@@ -81,7 +80,7 @@ class _VendorProductDetailScreenState extends State<VendorProductDetailScreen> {
       try {
         await FirebaseFirestore.instance
             .collection('products')
-            .doc(widget.productData['productId'])  // Dùng productId thay vì id
+            .doc(widget.productData['productId']) // Dùng productId thay vì id
             .update({
           'productName': _productNameController.text,
           'brandName': _brandNameController.text,
@@ -93,7 +92,7 @@ class _VendorProductDetailScreenState extends State<VendorProductDetailScreen> {
           'category': _selectedCategory,
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Product updated successfully!')),
+          SnackBar(content: Text('Product updated successfully!')),
         );
         Navigator.pop(context);
       } catch (e) {
@@ -103,8 +102,6 @@ class _VendorProductDetailScreenState extends State<VendorProductDetailScreen> {
       }
     }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -122,7 +119,8 @@ class _VendorProductDetailScreenState extends State<VendorProductDetailScreen> {
           ),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white), // Set the back button to white
+          icon: Icon(Icons.arrow_back,
+              color: Colors.white), // Set the back button to white
           onPressed: () {
             Navigator.pop(context);
           },
@@ -140,10 +138,13 @@ class _VendorProductDetailScreenState extends State<VendorProductDetailScreen> {
                 controller: _productNameController,
                 decoration: InputDecoration(
                   labelText: 'Product Name',
-                  labelStyle: TextStyle(fontSize: 18), // Slightly smaller label font size
-                  contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 10), // Reduced padding
+                  labelStyle: TextStyle(
+                      fontSize: 18), // Slightly smaller label font size
+                  contentPadding: EdgeInsets.symmetric(
+                      vertical: 12, horizontal: 10), // Reduced padding
                 ),
-                style: TextStyle(fontSize: 18), // Slightly smaller input font size
+                style:
+                    TextStyle(fontSize: 18), // Slightly smaller input font size
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter product name';
@@ -158,10 +159,13 @@ class _VendorProductDetailScreenState extends State<VendorProductDetailScreen> {
                 controller: _brandNameController,
                 decoration: InputDecoration(
                   labelText: 'Brand Name',
-                  labelStyle: TextStyle(fontSize: 18), // Slightly smaller label font size
-                  contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 10), // Reduced padding
+                  labelStyle: TextStyle(
+                      fontSize: 18), // Slightly smaller label font size
+                  contentPadding: EdgeInsets.symmetric(
+                      vertical: 12, horizontal: 10), // Reduced padding
                 ),
-                style: TextStyle(fontSize: 18), // Slightly smaller input font size
+                style:
+                    TextStyle(fontSize: 18), // Slightly smaller input font size
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter brand name';
@@ -177,10 +181,13 @@ class _VendorProductDetailScreenState extends State<VendorProductDetailScreen> {
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: 'Quantity',
-                  labelStyle: TextStyle(fontSize: 18), // Slightly smaller label font size
-                  contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 10), // Reduced padding
+                  labelStyle: TextStyle(
+                      fontSize: 18), // Slightly smaller label font size
+                  contentPadding: EdgeInsets.symmetric(
+                      vertical: 12, horizontal: 10), // Reduced padding
                 ),
-                style: TextStyle(fontSize: 18), // Slightly smaller input font size
+                style:
+                    TextStyle(fontSize: 18), // Slightly smaller input font size
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter quantity';
@@ -199,10 +206,13 @@ class _VendorProductDetailScreenState extends State<VendorProductDetailScreen> {
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
                   labelText: 'Product Price',
-                  labelStyle: TextStyle(fontSize: 18), // Slightly smaller label font size
-                  contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 10), // Reduced padding
+                  labelStyle: TextStyle(
+                      fontSize: 18), // Slightly smaller label font size
+                  contentPadding: EdgeInsets.symmetric(
+                      vertical: 12, horizontal: 10), // Reduced padding
                 ),
-                style: TextStyle(fontSize: 18), // Slightly smaller input font size
+                style:
+                    TextStyle(fontSize: 18), // Slightly smaller input font size
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter product price';
@@ -221,10 +231,13 @@ class _VendorProductDetailScreenState extends State<VendorProductDetailScreen> {
                 maxLines: 3,
                 decoration: InputDecoration(
                   labelText: 'Description',
-                  labelStyle: TextStyle(fontSize: 18), // Slightly smaller label font size
-                  contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 10), // Reduced padding
+                  labelStyle: TextStyle(
+                      fontSize: 18), // Slightly smaller label font size
+                  contentPadding: EdgeInsets.symmetric(
+                      vertical: 12, horizontal: 10), // Reduced padding
                 ),
-                style: TextStyle(fontSize: 18), // Slightly smaller input font size
+                style:
+                    TextStyle(fontSize: 18), // Slightly smaller input font size
               ),
               SizedBox(height: 15), // Reduced space between fields
 
@@ -238,8 +251,10 @@ class _VendorProductDetailScreenState extends State<VendorProductDetailScreen> {
                 },
                 decoration: InputDecoration(
                   labelText: 'Category',
-                  labelStyle: TextStyle(fontSize: 18), // Slightly smaller label font size
-                  contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 10), // Reduced padding
+                  labelStyle: TextStyle(
+                      fontSize: 18), // Slightly smaller label font size
+                  contentPadding: EdgeInsets.symmetric(
+                      vertical: 12, horizontal: 10), // Reduced padding
                 ),
                 items: categories.map((category) {
                   return DropdownMenuItem<String>(

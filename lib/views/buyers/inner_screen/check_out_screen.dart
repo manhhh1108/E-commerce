@@ -49,7 +49,7 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
         return Scaffold(
           appBar: AppBar(
             backgroundColor: Colors.yellow.shade900,
-            iconTheme: const IconThemeData(color: Colors.white),
+            iconTheme:  IconThemeData(color: Colors.white),
             title: const Text(
               "Checkout",
               style:
