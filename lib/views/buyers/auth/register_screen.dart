@@ -61,7 +61,7 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
           'email': email,
           'buyerId': uid,
           'profileImage': imageUrl,
-          'address': '',
+          'address': 'null',
         });
 
         setState(() {

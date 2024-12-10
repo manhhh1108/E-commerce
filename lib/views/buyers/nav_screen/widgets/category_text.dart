@@ -84,7 +84,7 @@ class _CategoryTextState extends State<CategoryText> {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 14,
+                                    fontSize: 15,
                                     fontWeight: FontWeight.bold,
                                   ),
                                   maxLines: 1, // Đảm bảo chỉ hiển thị 1 dòng

@@ -37,6 +37,7 @@ class AccountScreen extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
+            iconTheme: IconThemeData(color: Colors.white),
             elevation: 2,
             backgroundColor: Colors.yellow.shade900,
             title: Text('Profile', style: TextStyle(color: Colors.white)),
@@ -99,11 +100,8 @@ class AccountScreen extends StatelessWidget {
                 child: Divider(thickness: 2, color: Colors.grey),
               ),
               ListTile(
-                leading: Icon(Icons.phone_iphone),
-                title: Text(
-                  data['phoneNumber'] ?? 'No Phone Number',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                ),
+                leading: Icon(CupertinoIcons.heart),
+                title: Text('Wishlist'),
               ),
               ListTile(
                 leading: Icon(Icons.shopping_cart_outlined),

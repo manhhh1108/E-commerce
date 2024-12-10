@@ -22,7 +22,7 @@ class CustomerOrderScreen extends StatelessWidget {
     // Lấy danh sách đơn hàng từ Firestore
     final Stream<QuerySnapshot> _ordersStream = FirebaseFirestore.instance
         .collection('orders')
-        // .where('buyerId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+        .where('buyerId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
         .snapshots();
 
     return Scaffold(

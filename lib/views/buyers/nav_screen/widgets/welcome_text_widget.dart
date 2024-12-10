@@ -21,7 +21,7 @@ class WelcomeText extends StatelessWidget {
           Expanded(
             child: Text(
               // '$userName, What Are You\nLooking For 👀',
-              ', What Are You\nLooking For 👀',
+              'Hi, What Are You\nLooking For 👀',
               style: const TextStyle(
                 fontSize: 19,
                 fontWeight: FontWeight.bold,
