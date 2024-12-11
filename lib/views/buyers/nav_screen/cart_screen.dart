@@ -263,7 +263,7 @@ class CartScreen extends StatelessWidget {
                         style: TextStyle(fontSize: 16),
                       ),
                       Text(
-                        '\$6.99',
+                        '\$0.00',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -284,7 +284,7 @@ class CartScreen extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '\$${(_cartProvider.totalPrice + 6.99).toStringAsFixed(2)}',
+                        '\$${(_cartProvider.totalPrice ).toStringAsFixed(2)}',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,

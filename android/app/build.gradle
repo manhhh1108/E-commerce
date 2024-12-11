@@ -44,4 +44,5 @@ flutter {
 }
 dependencies {
     implementation platform('com.google.firebase:firebase-bom:33.5.1')
+    implementation 'androidx.fragment:fragment-ktx:1.5.7'
 }

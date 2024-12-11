@@ -3,3 +3,6 @@
     -dontwarn com.stripe.android.pushProvisioning.PushProvisioningActivityStarter$Error
     -dontwarn com.stripe.android.pushProvisioning.PushProvisioningActivityStarter
     -dontwarn com.stripe.android.pushProvisioning.PushProvisioningEphemeralKeyProvider
+    -keep class com.stripe.** { *; }
+    -keep class com.facebook.** { *; }
+    -dontwarn com.stripe.android.**

@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -20,10 +19,17 @@ import 'package:multi_store/views/buyers/inner_screen/search_view.dart';
 import 'package:multi_store/views/buyers/main_screen.dart';
 import 'package:multi_store/views/buyers/nav_screen/cart_screen.dart';
 import 'package:multi_store/views/buyers/nav_screen/home_screen.dart';
+import 'package:multi_store/views/buyers/payment/home_page.dart';
+import 'package:multi_store/views/buyers/payment/key.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  Stripe.publishableKey = PublishableKey;
+  await Stripe.instance.applySettings();
+
 
   // Firebase Initialization for Android and iOS
   if (Platform.isAndroid) {
@@ -72,7 +78,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         fontFamily: 'Brand-Bold',
       ),
-      home: MainScreen(),
+      home: LoginScreen(),
     );
   }
 }
