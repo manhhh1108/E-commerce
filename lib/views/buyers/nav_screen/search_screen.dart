@@ -9,11 +9,13 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   String _searchValue = '';
+  TextEditingController _searchController = TextEditingController(); // Khởi tạo controller
+  String _recommendedCategory = '';
+  String _recommendedBrand = '';
 
   @override
   Widget build(BuildContext context) {
-    final Stream<QuerySnapshot> _productsStream =
-    FirebaseFirestore.instance.collection('products').snapshots();
+    final Stream<QuerySnapshot> _productsStream = FirebaseFirestore.instance.collection('products').snapshots();
 
     return Scaffold(
       appBar: AppBar(
@@ -21,15 +23,30 @@ class _SearchScreenState extends State<SearchScreen> {
         backgroundColor: Colors.yellow.shade900,
         elevation: 0,
         title: TextFormField(
+          controller: _searchController,  // Sử dụng controller để quản lý giá trị
           onChanged: (value) {
             setState(() {
               _searchValue = value.trim();
             });
+            if (_searchValue.isNotEmpty) {
+              _getRecommendationData(_searchValue);
+            }
           },
           decoration: InputDecoration(
             hintText: "Search for products...",
             hintStyle: TextStyle(color: Colors.white70),
             prefixIcon: Icon(Icons.search, color: Colors.white),
+            suffixIcon: _searchValue.isNotEmpty
+                ? IconButton(
+              icon: Icon(Icons.clear, color: Colors.white),
+              onPressed: () {
+                setState(() {
+                  _searchController.clear(); // Xóa chuỗi tìm kiếm trong controller
+                  _searchValue = ''; // Xóa giá trị tìm kiếm trong biến
+                });
+              },
+            )
+                : null,
             border: InputBorder.none,
           ),
           style: TextStyle(color: Colors.white),
@@ -44,8 +61,7 @@ class _SearchScreenState extends State<SearchScreen> {
       )
           : StreamBuilder<QuerySnapshot>(
         stream: _productsStream,
-        builder: (BuildContext context,
-            AsyncSnapshot<QuerySnapshot> snapshot) {
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text('Something went wrong.'));
           }
@@ -64,9 +80,15 @@ class _SearchScreenState extends State<SearchScreen> {
           }
 
           final searchData = snapshot.data!.docs.where((element) {
-            final productName =
-                element['productName']?.toString().toLowerCase() ?? '';
-            return productName.contains(_searchValue.toLowerCase());
+            final productName = element['productName']?.toString().toLowerCase() ?? '';
+            final category = element['category']?.toString().toLowerCase() ?? '';
+            final brand = element['brandName']?.toString().toLowerCase() ?? '';
+
+            bool matchesSearch = productName.contains(_searchValue.toLowerCase());
+            bool matchesCategory = category.contains(_recommendedCategory.toLowerCase());
+            bool matchesBrand = brand.contains(_recommendedBrand.toLowerCase());
+
+            return matchesSearch || matchesCategory || matchesBrand;
           }).toList();
 
           if (searchData.isEmpty) {
@@ -140,17 +162,24 @@ class _SearchScreenState extends State<SearchScreen> {
                           color: Colors.grey,
                         ),
                       ),
+                      SizedBox(height: 4),
+                      Text(
+                        productData['brandName'] ?? 'Unknown Brand',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                      ),
                     ],
                   ),
                   trailing: IconButton(
                     icon: Icon(Icons.arrow_forward, color: Colors.yellow.shade900),
                     onPressed: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) {
-                            return ProductDetailScreen(
-                              productData: productData,
-                            );
-                          }));
+                      Navigator.push(context, MaterialPageRoute(builder: (context) {
+                        return ProductDetailScreen(
+                          productData: productData,
+                        );
+                      }));
                     },
                   ),
                 ),
@@ -160,5 +189,17 @@ class _SearchScreenState extends State<SearchScreen> {
         },
       ),
     );
+  }
+
+  _getRecommendationData(String searchValue) {
+    FirebaseFirestore.instance.collection('products').where('productName', isGreaterThanOrEqualTo: searchValue).limit(1).get().then((querySnapshot) {
+      if (querySnapshot.docs.isNotEmpty) {
+        var productData = querySnapshot.docs.first.data() as Map<String, dynamic>;
+        setState(() {
+          _recommendedCategory = productData['category'] ?? '';
+          _recommendedBrand = productData['brandName'] ?? '';
+        });
+      }
+    });
   }
 }

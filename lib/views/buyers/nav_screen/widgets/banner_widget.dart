@@ -1,3 +1,4 @@
+import 'dart:async'; // Thêm thư viện để sử dụng Timer
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,8 @@ class BannerWidget extends StatefulWidget {
 class _BannerWidgetState extends State<BannerWidget> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final List _bannerImage = [];
+  PageController _pageController = PageController();
+  int _currentPage = 0;
 
   getBanners() {
     return _firestore.collection('banners').get().then((querySnapshot) {
@@ -27,8 +30,28 @@ class _BannerWidgetState extends State<BannerWidget> {
 
   @override
   void initState() {
-    getBanners();
     super.initState();
+    getBanners();
+
+    // Timer tự động lướt các banner mỗi 2 giây
+    Timer.periodic(Duration(seconds: 2), (Timer timer) {
+      if (_bannerImage.isNotEmpty) {
+        _currentPage = (_currentPage + 1) % _bannerImage.length;
+        if (_pageController.hasClients) {
+          _pageController.animateToPage(
+            _currentPage,
+            duration: Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -44,11 +67,11 @@ class _BannerWidgetState extends State<BannerWidget> {
         ),
         child: _bannerImage.isEmpty
             ? Shimmer(
-          duration: Duration(seconds: 2), // Set the duration of shimmer effect
-          interval: Duration(seconds: 1), // Set the interval of shimmer
-          color: Colors.grey.shade400, // Set the shimmer color
-          colorOpacity: 0.3, // Set shimmer opacity
-          direction: ShimmerDirection.fromLeftToRight(), // Direction of shimmer
+          duration: Duration(seconds: 2),
+          interval: Duration(seconds: 1),
+          color: Colors.grey.shade400,
+          colorOpacity: 0.3,
+          direction: ShimmerDirection.fromLeftToRight(),
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -59,6 +82,7 @@ class _BannerWidgetState extends State<BannerWidget> {
           ),
         )
             : PageView.builder(
+          controller: _pageController, // Điều khiển page view
           itemCount: _bannerImage.length,
           itemBuilder: (context, index) {
             return ClipRRect(
@@ -67,7 +91,7 @@ class _BannerWidgetState extends State<BannerWidget> {
                 imageUrl: _bannerImage[index],
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Shimmer(
-                  duration: Duration(seconds: 2),
+                  duration: Duration(seconds: 4),
                   interval: Duration(seconds: 1),
                   color: Colors.grey.shade400,
                   colorOpacity: 0.3,
@@ -76,7 +100,8 @@ class _BannerWidgetState extends State<BannerWidget> {
                     color: Colors.white,
                   ),
                 ),
-                errorWidget: (context, url, error) => Icon(Icons.error),
+                errorWidget: (context, url, error) =>
+                    Icon(Icons.error),
               ),
             );
           },

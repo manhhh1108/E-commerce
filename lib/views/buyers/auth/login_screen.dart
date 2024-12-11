@@ -12,9 +12,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final AuthController _authController = AuthController();
-  late String email;
-
-  late String password;
+  late String email = ''; // Khởi tạo giá trị mặc định cho email
+  late String password = ''; // Khởi tạo giá trị mặc định cho password
 
   bool _isLoading = false;
 
@@ -111,16 +110,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Center(
                     child: _isLoading
                         ? CircularProgressIndicator(
-                            color: Colors.white,
-                          )
+                      color: Colors.white,
+                    )
                         : Text(
-                            'Login',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 19,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 2),
-                          ),
+                      'Login',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 19,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 2),
+                    ),
                   ),
                 ),
               ),
@@ -136,6 +135,25 @@ class _LoginScreenState extends State<LoginScreen> {
                       }),
                     );
                   }, child: Text("Register"))
+                ],
+              ),
+              SizedBox(height: 20), // Khoảng cách giữa các phần
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("Continue as Guest"),
+                  TextButton(
+                    onPressed: () {
+                      // Điều hướng đến màn hình chính hoặc trang của khách
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) {
+                          return MainScreen(); // Màn hình chính dành cho khách
+                        }),
+                      );
+                    },
+                    child: Text("Guest View"),
+                  ),
                 ],
               ),
             ],

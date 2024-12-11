@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:multi_store/controllers/auth_cotroller.dart';
 import 'package:multi_store/utils/show_snackBar.dart';
@@ -27,12 +28,13 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
   Uint8List? _image;
   bool _imageSelected = false;
 
+  /// Đăng ký người dùng
   _signUpUser() async {
     setState(() {
       _isLoading = true;
     });
 
-    if (_formKey.currentState!.validate() && _image != null) {
+    if (_formKey.currentState!.validate()) {
       try {
         // Đăng ký người dùng với Firebase Authentication
         UserCredential userCredential =
@@ -41,19 +43,30 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
           password: password,
         );
 
+        // Xử lý ảnh
+        String imageUrl = '';
+        Uint8List imageBytes;
+
+        if (_image != null) {
+          // Nếu người dùng đã chọn ảnh
+          imageBytes = _image!;
+        } else {
+          // Nếu không, sử dụng ảnh mặc định từ assets
+          imageBytes = await rootBundle.load('assets/images/default_profile.jpg')
+              .then((byteData) => byteData.buffer.asUint8List());
+        }
+
         // Tải ảnh lên Firebase Storage
         String fileName =
             '${userCredential.user!.uid}_profile.jpg'; // Tên file ảnh duy nhất
         Reference storageRef =
         FirebaseStorage.instance.ref().child('profile_images/$fileName');
-        UploadTask uploadTask = storageRef.putData(_image!);
+        UploadTask uploadTask = storageRef.putData(imageBytes);
 
         TaskSnapshot snapshot = await uploadTask.whenComplete(() {});
+        imageUrl = await snapshot.ref.getDownloadURL();
 
-        // Lấy URL ảnh đã tải lên
-        String imageUrl = await snapshot.ref.getDownloadURL();
-
-        // Lưu thông tin người dùng vào Firestore, bao gồm cả URL ảnh
+        // Lưu thông tin người dùng vào Firestore
         String uid = userCredential.user!.uid;
         await FirebaseFirestore.instance.collection('buyers').doc(uid).set({
           'fullName': fullName,
@@ -89,18 +102,30 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
         _isLoading = false;
         if (_image == null) {
           _imageSelected = false;
-          showSnack(context, 'Please select a profile image');
-        } else {
-          _imageSelected = true;
         }
       });
-
-      if (!_formKey.currentState!.validate()) {
-        showSnack(context, 'Please fill in all fields');
-      }
     }
   }
 
+  /// Chọn ảnh từ thư viện
+  selectGalleryImage() async {
+    Uint8List im = await _authController.pickProfileImage(ImageSource.gallery);
+    setState(() {
+      _image = im;
+      _imageSelected = true;
+    });
+  }
+
+  /// Chụp ảnh từ camera
+  selectCameraImage() async {
+    Uint8List im = await _authController.pickProfileImage(ImageSource.camera);
+    setState(() {
+      _image = im;
+      _imageSelected = true;
+    });
+  }
+
+  /// Dialog chọn ảnh
   selectImage() async {
     showDialog(
       context: context,
@@ -144,22 +169,6 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
     );
   }
 
-  selectGalleryImage() async {
-    Uint8List im = await _authController.pickProfileImage(ImageSource.gallery);
-    setState(() {
-      _image = im;
-      _imageSelected = true; // Đánh dấu đã chọn ảnh
-    });
-  }
-
-  selectCameraImage() async {
-    Uint8List im = await _authController.pickProfileImage(ImageSource.camera);
-    setState(() {
-      _image = im;
-      _imageSelected = true; // Đánh dấu đã chọn ảnh
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -178,22 +187,20 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
                 ),
                 Stack(
                   children: [
-                    _image != null
-                        ? CircleAvatar(
+                    CircleAvatar(
                       radius: 64,
                       backgroundColor: Colors.yellow.shade900,
-                      backgroundImage: MemoryImage(_image!),
-                    )
-                        : CircleAvatar(
-                      radius: 64,
-                      backgroundColor: Colors.yellow.shade900,
+                      backgroundImage: _image != null
+                          ? MemoryImage(_image!)
+                          : AssetImage('assets/images/default_profile.jpg')
+                      as ImageProvider,
                     ),
                     Positioned(
                       right: 0,
                       top: 0,
                       child: IconButton(
                         onPressed: () {
-                          selectImage(); // Hiển thị dialog chọn ảnh
+                          selectImage();
                         },
                         icon: Icon(
                           CupertinoIcons.photo,
@@ -217,7 +224,8 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
                     validator: (value) {
                       if (value!.isEmpty) {
                         return 'Email must not be empty';
-                      } else if (!RegExp(r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+').hasMatch(value)) {
+                      } else if (!RegExp(r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+')
+                          .hasMatch(value)) {
                         return 'Please enter a valid email';
                       }
                       return null;
