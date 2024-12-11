@@ -14,12 +14,12 @@ class CategoriesScreen extends StatelessWidget {
       appBar: AppBar(
         iconTheme: IconThemeData(color: Colors.white),
         backgroundColor: Colors.yellow.shade900,
-        title: Center(
-          child: Text(
-            'Categories',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
+        title: Text(
+          'Categories',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center, // Căn giữa chữ
         ),
+        centerTitle: true,  // Đảm bảo tiêu đề luôn được căn giữa
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _productStream,

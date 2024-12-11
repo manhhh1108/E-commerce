@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_store/provider/cart_provider.dart';
+import 'package:multi_store/views/buyers/auth/login_screen.dart'; // Import màn hình đăng nhập
 import 'package:multi_store/views/buyers/inner_screen/check_out_screen.dart';
 import 'package:multi_store/views/buyers/main_screen.dart';
 import 'package:provider/provider.dart';
@@ -12,14 +14,15 @@ class CartScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final CartProvider _cartProvider = Provider.of<CartProvider>(context);
     final cartItems = _cartProvider.getCartItem;
+    final FirebaseAuth _auth = FirebaseAuth.instance;
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.yellow.shade900,
         elevation: 0,
         title: Container(
-          width: double.infinity, // Đặt chiều rộng để chiếm toàn bộ không gian
-          alignment: Alignment.center, // Căn giữa
+          width: double.infinity,
+          alignment: Alignment.center,
           child: Text(
             'Cart Screen',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -39,131 +42,121 @@ class CartScreen extends StatelessWidget {
       ),
       body: _cartProvider.getCartItem.isNotEmpty
           ? SafeArea(
-              child: ListView.builder(
-                itemCount: cartItems.length,
-                itemBuilder: (context, index) {
-                  final cartData = cartItems.values.toList()[index];
+        child: ListView.builder(
+          itemCount: cartItems.length,
+          itemBuilder: (context, index) {
+            final cartData = cartItems.values.toList()[index];
 
-                  return Card(
-                    margin:
-                        const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            height: 100,
-                            width: 100,
-                            child: Image.network(cartData.imageUrl.isNotEmpty
-                                ? cartData.imageUrl[0]
-                                : 'https://via.placeholder.com/150'), // Placeholder nếu không có ảnh
-                          ),
-
-                          // Nội dung sản phẩm
-                          Expanded(
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+            return Card(
+              margin:
+              const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      height: 100,
+                      width: 100,
+                      child: Image.network(cartData.imageUrl.isNotEmpty
+                          ? cartData.imageUrl[0]
+                          : 'https://via.placeholder.com/150'), // Placeholder nếu không có ảnh
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding:
+                        const EdgeInsets.symmetric(horizontal: 10.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceAround,
+                          children: [
+                            Text(
+                              cartData.productName,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              '\$${cartData.price.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.yellow.shade900,
+                              ),
+                            ),
+                            OutlinedButton(
+                              onPressed: () {},
+                              child: Text(cartData.productSize),
+                            ),
+                            Container(
+                              height: 40,
+                              width: 150,
+                              decoration: BoxDecoration(
+                                color: Colors.yellow.shade900,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
                                 mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
+                                MainAxisAlignment.spaceBetween,
                                 children: [
-                                  // Tên sản phẩm
+                                  IconButton(
+                                    onPressed: cartData.quantity == 1
+                                        ? null
+                                        : () {
+                                      _cartProvider
+                                          .decreament(cartData);
+                                    },
+                                    icon: Icon(
+                                      CupertinoIcons.minus,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                                   Text(
-                                    cartData.productName,
+                                    cartData.quantity.toString(),
                                     style: TextStyle(
+                                      color: Colors.white,
                                       fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-
-                                  // Giá sản phẩm
-                                  Text(
-                                    '\$${cartData.price.toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.yellow.shade900,
                                     ),
                                   ),
-
-                                  // Size sản phẩm
-                                  OutlinedButton(
-                                    onPressed: () {},
-                                    child: Text(cartData.productSize),
-                                  ),
-
-                                  // Tăng/Giảm số lượng
-                                  Container(
-                                    height: 40,
-                                    width: 150,
-                                    decoration: BoxDecoration(
-                                      color: Colors.yellow.shade900,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        IconButton(
-                                          onPressed: cartData.quantity == 1
-                                              ? null
-                                              : () {
-                                                  _cartProvider
-                                                      .decreament(cartData);
-                                                },
-                                          icon: Icon(
-                                            CupertinoIcons.minus,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        Text(
-                                          cartData.quantity.toString(),
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                        IconButton(
-                                          onPressed: cartData.quantity ==
-                                                  cartData.productQuantity
-                                              ? null
-                                              : () {
-                                                  _cartProvider
-                                                      .increament(cartData);
-                                                },
-                                          icon: Icon(
-                                            CupertinoIcons.plus,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ],
+                                  IconButton(
+                                    onPressed: cartData.quantity ==
+                                        cartData.productQuantity
+                                        ? null
+                                        : () {
+                                      _cartProvider
+                                          .increament(cartData);
+                                    },
+                                    icon: Icon(
+                                      CupertinoIcons.plus,
+                                      color: Colors.white,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              // Xử lý xóa sản phẩm khỏi giỏ hàng
-                              _cartProvider.removeProductFromCart(
-                                  cartData.productId + cartData.productSize);
-                            },
-                            icon: Icon(
-                              CupertinoIcons.trash,
-                              color: Colors.yellow.shade900,
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  );
-                },
+                    IconButton(
+                      onPressed: () {
+                        _cartProvider.removeProductFromCart(
+                            cartData.productId + cartData.productSize);
+                      },
+                      icon: Icon(
+                        CupertinoIcons.trash,
+                        color: Colors.yellow.shade900,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            )
+            );
+          },
+        ),
+      )
           : Center(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -171,16 +164,12 @@ class CartScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Image or Icon
               Image.asset(
-                'assets/images/abandoned-cart.png', // Replace with the correct path
-                height: 200, // Adjust the size of the image
+                'assets/images/abandoned-cart.png',
+                height: 200,
                 width: 200,
               ),
-              SizedBox(
-                height: 20,
-              ),
-              // Text Message
+              SizedBox(height: 20),
               Text(
                 'Your Shopping Cart Is Empty',
                 style: TextStyle(
@@ -190,13 +179,10 @@ class CartScreen extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(
-                height: 20,
-              ),
-              // Button to continue shopping
+              SizedBox(height: 20),
               GestureDetector(
                 onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
                     return MainScreen();
                   }));
                 },
@@ -211,7 +197,7 @@ class CartScreen extends StatelessWidget {
                         color: Colors.yellow.shade900.withOpacity(0.3),
                         spreadRadius: 2,
                         blurRadius: 5,
-                        offset: Offset(0, 3), // Changes position of shadow
+                        offset: Offset(0, 3),
                       ),
                     ],
                   ),
@@ -236,7 +222,6 @@ class CartScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Tổng thanh toán
             Container(
               padding: const EdgeInsets.all(12.0),
               decoration: BoxDecoration(
@@ -278,7 +263,7 @@ class CartScreen extends StatelessWidget {
                         style: TextStyle(fontSize: 16),
                       ),
                       Text(
-                        '\$6.99', // Phí giao hàng cố định
+                        '\$6.99',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -312,16 +297,21 @@ class CartScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            // Nút Check Out
             InkWell(
               onTap: _cartProvider.totalPrice == 0.00
                   ? null
                   : () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) {
-                        return CheckOutScreen();
-                      }));
-                    },
+                // Kiểm tra trạng thái đăng nhập
+                if (_auth.currentUser == null) {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return LoginScreen();
+                  }));
+                } else {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return CheckOutScreen();
+                  }));
+                }
+              },
               child: Container(
                 height: 50,
                 width: double.infinity,

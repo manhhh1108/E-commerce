@@ -20,7 +20,6 @@ import 'package:multi_store/views/buyers/inner_screen/search_view.dart';
 import 'package:multi_store/views/buyers/main_screen.dart';
 import 'package:multi_store/views/buyers/nav_screen/cart_screen.dart';
 import 'package:multi_store/views/buyers/nav_screen/home_screen.dart';
-import 'package:multi_store/views/buyers/payment/services/home_page.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -73,7 +72,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         fontFamily: 'Brand-Bold',
       ),
-      home: HomePage(),
+      home: MainScreen(),
     );
   }
 }

@@ -35,6 +35,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final imageUrlList = widget.productData?['imageUrl'] ?? [];
     final description = widget.productData?['description'] ?? 'No Description';
     final sizeList = widget.productData?['sizeList'] ?? [];
+    final brandName = widget.productData?['brandName'] ?? 'No Brand Name';  // Lấy brandName
 
     final CartProvider _cartProvider = Provider.of<CartProvider>(context);
 
@@ -58,15 +59,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   width: double.infinity,
                   child: imageUrlList.isNotEmpty
                       ? PhotoView(
-                          imageProvider:
-                              NetworkImage(imageUrlList[_imageIndex]),
-                        )
+                    imageProvider:
+                    NetworkImage(imageUrlList[_imageIndex]),
+                  )
                       : Center(
-                          child: Text(
-                            'No Images Available',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
+                    child: Text(
+                      'No Images Available',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
                 ),
                 if (imageUrlList.isNotEmpty)
                   Positioned(
@@ -119,6 +120,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             Text(
               productName,
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Text(
+                'Brand: $brandName', // Hiển thị brandName
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
             ),
             ExpansionTile(
               title: Row(
@@ -190,43 +202,43 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
               children: sizeList.isNotEmpty
                   ? [
-                      Container(
-                        height: 50,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: sizeList.length,
-                          itemBuilder: (context, index) {
-                            return Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: OutlinedButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _selectedSize = sizeList[index];
-                                  });
-                                },
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide(
-                                    color: _selectedSize == sizeList[index]
-                                        ? Colors.yellow.shade900
-                                        : Colors.black,
-                                  ),
-                                ),
-                                child: Text(sizeList[index]),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ]
-                  : [
-                      Padding(
+                Container(
+                  height: 50,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: sizeList.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          'No Sizes Available',
-                          style: TextStyle(fontSize: 16),
+                        child: OutlinedButton(
+                          onPressed: () {
+                            setState(() {
+                              _selectedSize = sizeList[index];
+                            });
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(
+                              color: _selectedSize == sizeList[index]
+                                  ? Colors.yellow.shade900
+                                  : Colors.black,
+                            ),
+                          ),
+                          child: Text(sizeList[index]),
                         ),
-                      ),
-                    ],
+                      );
+                    },
+                  ),
+                ),
+              ]
+                  : [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'No Sizes Available',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -235,24 +247,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         onTap: _selectedSize == null
             ? null // Disable if no size is selected
             : () {
-                // Nếu đã chọn size thì thêm vào giỏ hàng
-                _cartProvider.addProductToCart(
-                  widget.productData['productName'],
-                  widget.productData['productId'],
-                  widget.productData['imageUrl'],
-                  1, // Số lượng
-                  widget.productData['quantity'],
-                  widget.productData['productPrice'],
-                  widget.productData['vendorId'],
-                  _selectedSize!, // Truyền size đã chọn
-                  Timestamp.now(),
-                );
+          // Nếu đã chọn size thì thêm vào giỏ hàng
+          _cartProvider.addProductToCart(
+            widget.productData['productName'],
+            widget.productData['productId'],
+            widget.productData['imageUrl'],
+            1, // Số lượng
+            widget.productData['quantity'],
+            widget.productData['productPrice'],
+            widget.productData['vendorId'],
+            _selectedSize!, // Truyền size đã chọn
+            Timestamp.now(),
+          );
 
-                // Hiển thị thông báo thành công
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Added to cart successfully!')),
-                );
-              },
+          // Hiển thị thông báo thành công
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Added to cart successfully!')),
+          );
+        },
         child: Container(
           height: 50,
           width: MediaQuery.of(context).size.width,
