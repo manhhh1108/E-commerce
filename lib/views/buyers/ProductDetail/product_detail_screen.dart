@@ -35,7 +35,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final imageUrlList = widget.productData?['imageUrl'] ?? [];
     final description = widget.productData?['description'] ?? 'No Description';
     final sizeList = widget.productData?['sizeList'] ?? [];
-    final brandName = widget.productData?['brandName'] ?? 'No Brand Name';  // Lấy brandName
+    final brandName = widget.productData?['brandName'] ?? 'No Brand Name';
+    final quantityInStock = widget.productData?['quantity'] ?? 0;
 
     final CartProvider _cartProvider = Provider.of<CartProvider>(context);
 
@@ -46,7 +47,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         iconTheme: IconThemeData(color: Colors.black),
         title: Text(
           productName,
-          style: TextStyle(color: Colors.black, fontSize: 20),
+          style: TextStyle(color: Colors.black, fontSize: 22, fontWeight: FontWeight.w600),
         ),
       ),
       body: SingleChildScrollView(
@@ -58,14 +59,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   height: 300,
                   width: double.infinity,
                   child: imageUrlList.isNotEmpty
-                      ? PhotoView(
-                    imageProvider:
-                    NetworkImage(imageUrlList[_imageIndex]),
-                  )
+                      ? PhotoView(imageProvider: NetworkImage(imageUrlList[_imageIndex]))
                       : Center(
                     child: Text(
                       'No Images Available',
-                      style: TextStyle(fontSize: 16),
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
                     ),
                   ),
                 ),
@@ -73,7 +71,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   Positioned(
                     bottom: 0,
                     child: Container(
-                      height: 50,
+                      height: 60,
                       width: MediaQuery.of(context).size.width,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
@@ -92,10 +90,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   border: Border.all(
                                     color: Colors.yellow.shade900,
                                   ),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
                                 height: 60,
                                 width: 60,
-                                child: Image.network(imageUrlList[index]),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(imageUrlList[index], fit: BoxFit.cover),
+                                ),
                               ),
                             ),
                           );
@@ -105,31 +107,36 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ),
               ],
             ),
-            SizedBox(height: 20),
             Padding(
-              padding: const EdgeInsets.all(13.0),
+              padding: const EdgeInsets.all(15.0),
               child: Text(
                 "\$ ${productPrice.toStringAsFixed(2)}",
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.yellow.shade900,
+                  color: Colors.green.shade800,
                 ),
               ),
             ),
-            Text(
-              productName,
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Text(
+                productName,
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
+              ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 15),
               child: Text(
-                'Brand: $brandName', // Hiển thị brandName
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
+                'Brand: $brandName',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black54),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 15),
+              child: Text(
+                'Available in stock: $quantityInStock',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.red),
               ),
             ),
             ExpansionTile(
@@ -140,7 +147,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     'Product Description',
                     style: TextStyle(
                       color: Colors.yellow.shade900,
-                      fontSize: 18,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -148,7 +155,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     'View More',
                     style: TextStyle(
                       color: Colors.yellow.shade900,
-                      fontSize: 18,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -159,10 +166,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
                     description,
-                    style: TextStyle(
-                      fontSize: 17,
-                      color: Colors.black,
-                    ),
+                    style: TextStyle(fontSize: 17, color: Colors.black),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -174,20 +178,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'This Product Will Be Shipping On',
-                    style: TextStyle(
-                      color: Colors.yellow.shade900,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
+                    'Estimated Delivery Time',
+                    style: TextStyle(color: Colors.yellow.shade900, fontWeight: FontWeight.bold, fontSize: 20),
                   ),
                   Text(
                     formatedShippingDate,
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.blue,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, color: Colors.blue, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -195,10 +191,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ExpansionTile(
               title: Text(
                 'Available Size',
-                style: TextStyle(
-                    color: Colors.yellow.shade900,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold),
+                style: TextStyle(color: Colors.yellow.shade900, fontSize: 20, fontWeight: FontWeight.bold),
               ),
               children: sizeList.isNotEmpty
                   ? [
@@ -218,12 +211,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           },
                           style: OutlinedButton.styleFrom(
                             side: BorderSide(
-                              color: _selectedSize == sizeList[index]
-                                  ? Colors.yellow.shade900
-                                  : Colors.black,
+                              color: _selectedSize == sizeList[index] ? Colors.yellow.shade900 : Colors.black,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
                             ),
                           ),
-                          child: Text(sizeList[index]),
+                          child: Text(sizeList[index], style: TextStyle(fontSize: 16)),
                         ),
                       );
                     },
@@ -235,7 +229,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
                     'No Sizes Available',
-                    style: TextStyle(fontSize: 16),
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 ),
               ],
@@ -247,7 +241,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         onTap: _selectedSize == null
             ? null // Disable if no size is selected
             : () {
-          // Nếu đã chọn size thì thêm vào giỏ hàng
           _cartProvider.addProductToCart(
             widget.productData['productName'],
             widget.productData['productId'],
@@ -259,37 +252,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             _selectedSize!, // Truyền size đã chọn
             Timestamp.now(),
           );
-
-          // Hiển thị thông báo thành công
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Added to cart successfully!')),
           );
         },
         child: Container(
-          height: 50,
+          height: 60,
           width: MediaQuery.of(context).size.width,
           decoration: BoxDecoration(
-            color: _selectedSize == null
-                ? Colors.grey
-                : Colors.yellow.shade900, // Disable button if no size selected
-            borderRadius: BorderRadius.circular(10),
+            color: _selectedSize == null ? Colors.grey : Colors.yellow.shade900,
+            borderRadius: BorderRadius.circular(15),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                CupertinoIcons.cart,
-                color: Colors.white,
-              ),
+              Icon(CupertinoIcons.cart, color: Colors.white),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
                   'Add To Cart',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24),
                 ),
               ),
             ],

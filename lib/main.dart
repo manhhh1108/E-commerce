@@ -19,7 +19,6 @@ import 'package:multi_store/views/buyers/inner_screen/search_view.dart';
 import 'package:multi_store/views/buyers/main_screen.dart';
 import 'package:multi_store/views/buyers/nav_screen/cart_screen.dart';
 import 'package:multi_store/views/buyers/nav_screen/home_screen.dart';
-import 'package:multi_store/views/buyers/payment/home_page.dart';
 import 'package:multi_store/views/buyers/payment/key.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
