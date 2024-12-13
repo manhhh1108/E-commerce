@@ -2,11 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_store/vendor/views/screens/landing_screen.dart';
+import 'package:multi_store/views/buyers/auth/login_screen.dart'; // Import màn hình đăng nhập khách
 import '../../../utils/show_snackBar.dart';
 import '../../controllers/authentication.dart';
 import 'vendor_register_screen.dart';
 import '../forget_password/forgot_password.dart';
-import '../phoneAuth/phone_login.dart';
 import 'signup.dart';
 import '../screens/widgets/button.dart';
 import '../screens/widgets/text_field.dart';
@@ -30,13 +30,11 @@ class _SignupScreenState extends State<LoginVendorScreen> {
     passwordController.dispose();
   }
 
-// email and passowrd auth part
   void loginUser() async {
     setState(() {
       isLoading = true;
     });
 
-    // Đăng nhập người dùng
     String res = await AuthMethod().loginUser(
       email: emailController.text,
       password: passwordController.text,
@@ -46,7 +44,6 @@ class _SignupScreenState extends State<LoginVendorScreen> {
       User? user = FirebaseAuth.instance.currentUser;
 
       if (user != null) {
-        // Kiểm tra trạng thái 'approved' trong Firestore
         DocumentSnapshot vendorDoc = await FirebaseFirestore.instance
             .collection('vendors')
             .doc(user.uid)
@@ -59,14 +56,12 @@ class _SignupScreenState extends State<LoginVendorScreen> {
         });
 
         if (isApproved) {
-          // Nếu đã được phê duyệt, điều hướng đến LandingScreen
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => LandingScreen(),
             ),
           );
         } else {
-          // Nếu chưa được phê duyệt, điều hướng đến VendorRegisterScreen
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => VendorRegisterScreen(),
@@ -78,7 +73,6 @@ class _SignupScreenState extends State<LoginVendorScreen> {
       setState(() {
         isLoading = false;
       });
-      // Hiển thị lỗi nếu đăng nhập thất bại
       showSnack(context, res);
     }
   }
@@ -87,10 +81,8 @@ class _SignupScreenState extends State<LoginVendorScreen> {
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
     return Scaffold(
-      // resizeToAvoidBottomInset: false,
       backgroundColor: Colors.white,
       body: SafeArea(
-          child: SizedBox(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -106,11 +98,10 @@ class _SignupScreenState extends State<LoginVendorScreen> {
             TextFieldInput(
               icon: Icons.lock,
               textEditingController: passwordController,
-              hintText: 'Enter your passord',
+              hintText: 'Enter your password',
               textInputType: TextInputType.text,
               isPass: true,
             ),
-            //  we call our forgot password below the login in button
             ForgotPassword(),
             MyButtons(onTap: loginUser, text: "Log In"),
             Row(
@@ -124,32 +115,51 @@ class _SignupScreenState extends State<LoginVendorScreen> {
                 )
               ],
             ),
-            // for phone authentication
-            // PhoneAuthentication(),
-            // Don't have an account? got to signup screen
             Padding(
               padding: const EdgeInsets.only(top: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center, // Căn giữa
+              child: Column(
                 children: [
-                  Text(
-                    "Don't have an account? ",
-                    style: TextStyle(fontSize: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Don't have an account? ",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => SignupVendorScreen(),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          "SignUp",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  GestureDetector(
-                    onTap: () {
+                  SizedBox(height: 10),
+                  TextButton(
+                    onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => SignupVendorScreen(),
+                          builder: (context) => LoginScreen(), // Màn hình đăng nhập khách
                         ),
                       );
                     },
                     child: Text(
-                      "SignUp",
+                      "Login as Customer",
                       style: TextStyle(
-                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
                         fontSize: 16,
-                        color: Colors.blue, // Thêm màu nếu cần
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
@@ -158,27 +168,6 @@ class _SignupScreenState extends State<LoginVendorScreen> {
             ),
           ],
         ),
-      )),
-    );
-  }
-
-  Container socialIcon(image) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 32,
-        vertical: 15,
-      ),
-      decoration: BoxDecoration(
-        color: Color(0xFFedf0f8),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.black45,
-          width: 2,
-        ),
-      ),
-      child: Image.network(
-        image,
-        height: 40,
       ),
     );
   }

@@ -9,13 +9,13 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   String _searchValue = '';
-  TextEditingController _searchController = TextEditingController(); // Khởi tạo controller
-  String _recommendedCategory = '';
-  String _recommendedBrand = '';
+  TextEditingController _searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    final Stream<QuerySnapshot> _productsStream = FirebaseFirestore.instance.collection('products').snapshots();
+    final Stream<QuerySnapshot> _productsStream = FirebaseFirestore.instance
+        .collection('products')
+        .snapshots();
 
     return Scaffold(
       appBar: AppBar(
@@ -23,14 +23,11 @@ class _SearchScreenState extends State<SearchScreen> {
         backgroundColor: Colors.yellow.shade900,
         elevation: 0,
         title: TextFormField(
-          controller: _searchController,  // Sử dụng controller để quản lý giá trị
+          controller: _searchController,
           onChanged: (value) {
             setState(() {
               _searchValue = value.trim();
             });
-            if (_searchValue.isNotEmpty) {
-              _getRecommendationData(_searchValue);
-            }
           },
           decoration: InputDecoration(
             hintText: "Search for products...",
@@ -41,8 +38,8 @@ class _SearchScreenState extends State<SearchScreen> {
               icon: Icon(Icons.clear, color: Colors.white),
               onPressed: () {
                 setState(() {
-                  _searchController.clear(); // Xóa chuỗi tìm kiếm trong controller
-                  _searchValue = ''; // Xóa giá trị tìm kiếm trong biến
+                  _searchController.clear();
+                  _searchValue = '';
                 });
               },
             )
@@ -84,9 +81,10 @@ class _SearchScreenState extends State<SearchScreen> {
             final category = element['category']?.toString().toLowerCase() ?? '';
             final brand = element['brandName']?.toString().toLowerCase() ?? '';
 
+            // Tìm kiếm không phân biệt hoa thường
             bool matchesSearch = productName.contains(_searchValue.toLowerCase());
-            bool matchesCategory = category.contains(_recommendedCategory.toLowerCase());
-            bool matchesBrand = brand.contains(_recommendedBrand.toLowerCase());
+            bool matchesCategory = category.contains(_searchValue.toLowerCase());
+            bool matchesBrand = brand.contains(_searchValue.toLowerCase());
 
             return matchesSearch || matchesCategory || matchesBrand;
           }).toList();
@@ -189,17 +187,5 @@ class _SearchScreenState extends State<SearchScreen> {
         },
       ),
     );
-  }
-
-  _getRecommendationData(String searchValue) {
-    FirebaseFirestore.instance.collection('products').where('productName', isGreaterThanOrEqualTo: searchValue).limit(1).get().then((querySnapshot) {
-      if (querySnapshot.docs.isNotEmpty) {
-        var productData = querySnapshot.docs.first.data() as Map<String, dynamic>;
-        setState(() {
-          _recommendedCategory = productData['category'] ?? '';
-          _recommendedBrand = productData['brandName'] ?? '';
-        });
-      }
-    });
   }
 }

@@ -3,6 +3,7 @@ import 'package:multi_store/controllers/auth_cotroller.dart';
 import 'package:multi_store/utils/show_snackBar.dart';
 import 'package:multi_store/views/buyers/auth/register_screen.dart';
 import 'package:multi_store/views/buyers/main_screen.dart';
+import 'package:multi_store/vendor/views/auth/login.dart'; // Import màn hình Vendor Login
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -12,9 +13,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final AuthController _authController = AuthController();
-  late String email = ''; // Khởi tạo giá trị mặc định cho email
-  late String password = ''; // Khởi tạo giá trị mặc định cho password
-
+  late String email = '';
+  late String password = '';
   bool _isLoading = false;
 
   _loginUser() async {
@@ -23,25 +23,22 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     if (_formKey.currentState!.validate()) {
-      print("Email: $email, Password: $password");
-
       String res = await _authController.loginUsers(email, password);
 
       setState(() {
-        _isLoading = false; // Đặt về false sau khi đăng nhập thành công hoặc thất bại
+        _isLoading = false;
       });
 
       if (res == 'success') {
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) {
-              return MainScreen();
-            }));
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+          return MainScreen();
+        }));
       } else {
         showSnack(context, res);
       }
     } else {
       setState(() {
-        _isLoading = false; // Đặt về false nếu dữ liệu không hợp lệ
+        _isLoading = false;
       });
       showSnack(context, 'Please fill in all fields');
     }
@@ -66,13 +63,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   validator: (value) {
                     if (value!.isEmpty) {
                       return 'Please email must not be empty';
-                    } else {
-                      return null;
                     }
+                    return null;
                   },
-                  onChanged: ((value) {
+                  onChanged: (value) {
                     email = value;
-                  }),
+                  },
                   decoration: InputDecoration(labelText: 'Enter Email Address'),
                 ),
               ),
@@ -82,24 +78,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   obscureText: true,
                   validator: (value) {
                     if (value!.isEmpty) {
-                      return 'Please password must not be empty ';
-                    } else {
-                      return null;
+                      return 'Please password must not be empty';
                     }
+                    return null;
                   },
-                  onChanged: ((value) {
+                  onChanged: (value) {
                     password = value;
-                  }),
+                  },
                   decoration: InputDecoration(labelText: 'Password'),
                 ),
               ),
-              SizedBox(
-                height: 20,
-              ),
+              SizedBox(height: 20),
               InkWell(
-                onTap: () {
-                  _loginUser();
-                },
+                onTap: _loginUser,
                 child: Container(
                   width: MediaQuery.of(context).size.width - 40,
                   height: 50,
@@ -109,52 +100,68 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   child: Center(
                     child: _isLoading
-                        ? CircularProgressIndicator(
-                      color: Colors.white,
-                    )
+                        ? CircularProgressIndicator(color: Colors.white)
                         : Text(
                       'Login',
                       style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 19,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 2),
+                        color: Colors.white,
+                        fontSize: 19,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 2,
+                      ),
                     ),
                   ),
                 ),
               ),
+              SizedBox(height: 20),
+              Divider(), // Dòng kẻ phân cách
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Need An Account ?"),
-                  TextButton(onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) {
-                        return BuyerRegisterScreen();
-                      }),
-                    );
-                  }, child: Text("Register"))
+                  Text("Need An Account?"),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) {
+                          return BuyerRegisterScreen();
+                        }),
+                      );
+                    },
+                    child: Text("Register"),
+                  ),
                 ],
               ),
-              SizedBox(height: 20), // Khoảng cách giữa các phần
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text("Continue as Guest"),
                   TextButton(
                     onPressed: () {
-                      // Điều hướng đến màn hình chính hoặc trang của khách
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (context) {
-                          return MainScreen(); // Màn hình chính dành cho khách
+                          return MainScreen();
                         }),
                       );
                     },
                     child: Text("Guest View"),
                   ),
                 ],
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) {
+                      return LoginVendorScreen(); // Điều hướng đến màn hình Vendor Login
+                    }),
+                  );
+                },
+                child: Text(
+                  "Vendor Login",
+                  style: TextStyle(color: Colors.blue, fontSize: 16),
+                ),
               ),
             ],
           ),
