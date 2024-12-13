@@ -1,4 +1,0 @@
-String PublishableKey =
-    "pk_test_51QUWcTJjmmyrFVl5bDgcVIpwEUBOKAJmqREF2HXvl4I1Ydv54E753gNGml62GhQg0MWEpWG5rFNuh973V4rFaWWW001V9eLKAq";
-String SecretKey =
-    "sk_test_51QUWcTJjmmyrFVl5I6WJUss3AuQWL8RydJ2A9z73U5nxm8c8nF03oejQOlX6UIu42kM8vk3ru80c7BLc64hEO24D00m2WIpFpB";

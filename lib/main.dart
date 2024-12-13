@@ -20,16 +20,15 @@ import 'package:multi_store/views/buyers/inner_screen/search_view.dart';
 import 'package:multi_store/views/buyers/main_screen.dart';
 import 'package:multi_store/views/buyers/nav_screen/cart_screen.dart';
 import 'package:multi_store/views/buyers/nav_screen/home_screen.dart';
-import 'package:multi_store/views/buyers/payment/key.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Stripe.publishableKey = PublishableKey;
-  await Stripe.instance.applySettings();
-
   await dotenv.load();
+  String publishableKey = dotenv.env['PUBLISHABLE_KEY'] ?? '';
+  Stripe.publishableKey = publishableKey;
+  await Stripe.instance.applySettings();
 
   // Firebase initialization
   if (Platform.isAndroid) {

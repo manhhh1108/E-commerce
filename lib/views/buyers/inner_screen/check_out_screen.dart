@@ -6,9 +6,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:multi_store/provider/cart_provider.dart';
 import 'package:multi_store/views/buyers/main_screen.dart';
-import 'package:multi_store/views/buyers/payment/key.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class CheckOutScreen extends StatefulWidget {
   const CheckOutScreen({super.key});
@@ -41,7 +41,7 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const MainScreen()),
-            (route) => false,
+        (route) => false,
       );
     } on StripeException catch (e) {
       print("Stripe Error: $e");
@@ -64,12 +64,12 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
         'currency': currency,
         'payment_method_types[]': 'card',
       };
-
+      var secretKey = dotenv.env['STRIPE_SECRET_KEY'];
       var response = await http.post(
         Uri.parse('https://api.stripe.com/v1/payment_intents'),
         body: paymentInfo,
         headers: {
-          'Authorization': 'Bearer $SecretKey',
+          'Authorization': 'Bearer $secretKey',
           'Content-Type': 'application/x-www-form-urlencoded',
         },
       );
@@ -177,7 +177,7 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
         final data = snapshot.data!.data() as Map<String, dynamic>? ?? {};
         final address = data['address'] != null ? data['address'] : '';
 
-        double totalAmount = _cartProvider.totalPrice;  // Số tiền cần thanh toán
+        double totalAmount = _cartProvider.totalPrice; // Số tiền cần thanh toán
 
         return Scaffold(
           appBar: AppBar(
@@ -186,156 +186,160 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
             title: const Text(
               "Checkout",
               style:
-              TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                  TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
             ),
           ),
           body: cartItems.isEmpty
               ? const Center(child: Text("No items in your cart"))
               : ListView.builder(
-            itemCount: cartItems.length,
-            itemBuilder: (context, index) {
-              final cartData = cartItems.values.toList()[index];
+                  itemCount: cartItems.length,
+                  itemBuilder: (context, index) {
+                    final cartData = cartItems.values.toList()[index];
 
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  padding: const EdgeInsets.all(8.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8.0),
-                    boxShadow: [
-                      BoxShadow(
-                          color: Colors.grey.shade300,
-                          blurRadius: 4,
-                          spreadRadius: 2)
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        height: 100,
-                        width: 100,
-                        child: Image.network(
-                          cartData.imageUrl.isNotEmpty
-                              ? cartData.imageUrl[0]
-                              : 'https://via.placeholder.com/150',
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Container(
+                        padding: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8.0),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.grey.shade300,
+                                blurRadius: 4,
+                                spreadRadius: 2)
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              height: 100,
+                              width: 100,
+                              child: Image.network(
+                                cartData.imageUrl.isNotEmpty
+                                    ? cartData.imageUrl[0]
+                                    : 'https://via.placeholder.com/150',
+                              ),
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      cartData.productName,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Text(
+                                      '\$${cartData.price.toStringAsFixed(2)}',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.green,
+                                      ),
+                                    ),
+                                    // Hiển thị size và số lượng
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'Size: ${cartData.productSize}',
+                                          style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.black),
+                                        ),
+                                        SizedBox(
+                                            width:
+                                                10), // Khoảng cách giữa size và số lượng
+                                        Text(
+                                          'Quantity: ${cartData.quantity}',
+                                          style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.black),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                cartData.productName,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                '\$${cartData.price.toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green,
-                                ),
-                              ),
-                              // Hiển thị size và số lượng
-                              Row(
-                                children: [
-                                  Text(
-                                    'Size: ${cartData.productSize}',
-                                    style: TextStyle(
-                                        fontSize: 14, color: Colors.black),
-                                  ),
-                                  SizedBox(width: 10), // Khoảng cách giữa size và số lượng
-                                  Text(
-                                    'Quantity: ${cartData.quantity}',
-                                    style: TextStyle(
-                                        fontSize: 14, color: Colors.black),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
           bottomSheet: address.isEmpty
               ? TextButton(
-            onPressed: () {
-              // Navigate to address screen
-            },
-            child: const Text('Enter Address'),
-          )
+                  onPressed: () {
+                    // Navigate to address screen
+                  },
+                  child: const Text('Enter Address'),
+                )
               : Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: InkWell(
-              onTap: () {
-                final orderId = const Uuid().v4();
-                final orderDate = DateTime.now();
+                  padding: const EdgeInsets.all(8.0),
+                  child: InkWell(
+                    onTap: () {
+                      final orderId = const Uuid().v4();
+                      final orderDate = DateTime.now();
 
-                List<Map<String, dynamic>> cartItemsData =
-                cartItems.values
-                    .map((item) => {
-                  'productId': item.productId,
-                  'productName': item.productName,
-                  'productPrice': item.price,
-                  'productImage': item.imageUrl,
-                  'quantity': item.quantity,
-                  'productSize': item.productSize,
-                  'totalPrice': item.price * item.quantity,
-                  'vendorId': item.vendorId,
-                })
-                    .toList();
+                      List<Map<String, dynamic>> cartItemsData =
+                          cartItems.values
+                              .map((item) => {
+                                    'productId': item.productId,
+                                    'productName': item.productName,
+                                    'productPrice': item.price,
+                                    'productImage': item.imageUrl,
+                                    'quantity': item.quantity,
+                                    'productSize': item.productSize,
+                                    'totalPrice': item.price * item.quantity,
+                                    'vendorId': item.vendorId,
+                                  })
+                              .toList();
 
-                final orderData = {
-                  'orderId': orderId,
-                  'vendorIds': cartItems.values
-                      .map((item) => item.vendorId)
-                      .toSet()
-                      .toList(),
-                  'email': data['email'],
-                  'phone': data['phoneNumber'],
-                  'address': address,
-                  'buyerId': data['buyerId'],
-                  'fullName': data['fullName'],
-                  'buyerPhoto': data['profileImage'],
-                  'orderDate': orderDate.toIso8601String(),
-                  'totalOrderPrice': totalAmount,
-                  'cartItems': cartItemsData,
-                  'accepted': false,
-                };
+                      final orderData = {
+                        'orderId': orderId,
+                        'vendorIds': cartItems.values
+                            .map((item) => item.vendorId)
+                            .toSet()
+                            .toList(),
+                        'email': data['email'],
+                        'phone': data['phoneNumber'],
+                        'address': address,
+                        'buyerId': data['buyerId'],
+                        'fullName': data['fullName'],
+                        'buyerPhoto': data['profileImage'],
+                        'orderDate': orderDate.toIso8601String(),
+                        'totalOrderPrice': totalAmount,
+                        'cartItems': cartItemsData,
+                        'accepted': false,
+                      };
 
-                paymentSheetInitialization(totalAmount, orderData);
-              },
-              child: Container(
-                height: 50,
-                width: MediaQuery.of(context).size.width,
-                decoration: BoxDecoration(
-                    color: Colors.yellow.shade900,
-                    borderRadius: BorderRadius.circular(10)),
-                child: Center(
-                  child: Text(
-                    'Pay \$${totalAmount.toStringAsFixed(2)}', // Hiển thị số tiền cần thanh toán
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold),
+                      paymentSheetInitialization(totalAmount, orderData);
+                    },
+                    child: Container(
+                      height: 50,
+                      width: MediaQuery.of(context).size.width,
+                      decoration: BoxDecoration(
+                          color: Colors.yellow.shade900,
+                          borderRadius: BorderRadius.circular(10)),
+                      child: Center(
+                        child: Text(
+                          'Pay \$${totalAmount.toStringAsFixed(2)}', // Hiển thị số tiền cần thanh toán
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-          ),
         );
       },
     );
