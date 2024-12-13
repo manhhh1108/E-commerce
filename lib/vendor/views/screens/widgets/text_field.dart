@@ -6,6 +6,8 @@ class TextFieldInput extends StatelessWidget {
   final String hintText;
   final IconData? icon;
   final TextInputType textInputType;
+  final String? Function(String?)? validator; // Thêm tham số validator
+
   const TextFieldInput({
     super.key,
     required this.textEditingController,
@@ -13,13 +15,14 @@ class TextFieldInput extends StatelessWidget {
     required this.hintText,
     this.icon,
     required this.textInputType,
+    this.validator, // Nhận tham số validator
   });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      child: TextField(
+      child: TextFormField(
         style: const TextStyle(fontSize: 20),
         controller: textEditingController,
         decoration: InputDecoration(
@@ -44,6 +47,7 @@ class TextFieldInput extends StatelessWidget {
         ),
         keyboardType: textInputType,
         obscureText: isPass,
+        validator: validator, // Áp dụng validator
       ),
     );
   }

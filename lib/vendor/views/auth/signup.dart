@@ -87,6 +87,18 @@ class _SignupScreenState extends State<SignupVendorScreen> {
               hintText: 'Enter your passord',
               textInputType: TextInputType.text,
               isPass: true,
+              validator: (value) {
+                if (value!.isEmpty) {
+                  return 'Password must not be empty';
+                } else if (value.length < 8) {
+                  return 'Password must be at least 8 characters';
+                } else if (!RegExp(
+                        r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#\$%\^&\*\(\)]).{8,}$')
+                    .hasMatch(value)) {
+                  return 'Password must contain at least one letter, one number, and one special character';
+                }
+                return null;
+              },
             ),
             MyButtons(onTap: signupUser, text: "Register"),
             Row(

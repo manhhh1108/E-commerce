@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:multi_store/controllers/auth_cotroller.dart';
 import 'package:multi_store/utils/show_snackBar.dart';
+import 'package:multi_store/vendor/views/forget_password/forgot_password.dart';
 import 'package:multi_store/views/buyers/auth/register_screen.dart';
 import 'package:multi_store/views/buyers/main_screen.dart';
+
+import '../../../vendor/views/screens/widgets/button.dart';
+import '../../../vendor/views/screens/widgets/text_field.dart'; // Widget TextFieldInput
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -12,151 +16,175 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final AuthController _authController = AuthController();
-  late String email = ''; // Khởi tạo giá trị mặc định cho email
-  late String password = ''; // Khởi tạo giá trị mặc định cho password
+
+  // TextEditingController cho email và password
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   bool _isLoading = false;
 
-  _loginUser() async {
+  // Hàm đăng nhập người dùng
+  Future<void> _loginUser() async {
+    // Hiển thị trạng thái loading
     setState(() {
       _isLoading = true;
     });
 
     if (_formKey.currentState!.validate()) {
+      // Lấy giá trị từ các TextEditingController
+      String email = _emailController.text.trim();
+      String password = _passwordController.text.trim();
+
       print("Email: $email, Password: $password");
 
       String res = await _authController.loginUsers(email, password);
 
+      // Xử lý kết quả đăng nhập
       setState(() {
-        _isLoading = false; // Đặt về false sau khi đăng nhập thành công hoặc thất bại
+        _isLoading = false;
       });
 
       if (res == 'success') {
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) {
-              return MainScreen();
-            }));
+        // Chuyển hướng đến màn hình chính
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MainScreen()),
+        );
       } else {
+        // Hiển thị lỗi nếu không thành công
         showSnack(context, res);
       }
     } else {
+      // Nếu form không hợp lệ
       setState(() {
-        _isLoading = false; // Đặt về false nếu dữ liệu không hợp lệ
+        _isLoading = false;
       });
       showSnack(context, 'Please fill in all fields');
     }
   }
 
   @override
+  void dispose() {
+    // Giải phóng tài nguyên
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                "Login Customer's Account",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(13.0),
-                child: TextFormField(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Welcome to Multi Store",
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Nhập email
+                TextFieldInput(
+                  icon: Icons.person,
+                  textInputType: TextInputType.emailAddress,
+                  hintText: 'Enter your email',
+                  textEditingController: _emailController,
                   validator: (value) {
-                    if (value!.isEmpty) {
+                    if (value == null || value.isEmpty) {
                       return 'Please email must not be empty';
-                    } else {
-                      return null;
                     }
+                    if (!RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$')
+                        .hasMatch(value)) {
+                      return 'Please enter a valid email';
+                    }
+                    return null;
                   },
-                  onChanged: ((value) {
-                    email = value;
-                  }),
-                  decoration: InputDecoration(labelText: 'Enter Email Address'),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(13.0),
-                child: TextFormField(
-                  obscureText: true,
+
+                // Nhập mật khẩu
+                TextFieldInput(
+                  icon: Icons.lock,
+                  textInputType: TextInputType.text,
+                  hintText: 'Enter your password',
+                  textEditingController: _passwordController,
+                  isPass: true,
                   validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'Please password must not be empty ';
-                    } else {
-                      return null;
+                    if (value == null || value.isEmpty) {
+                      return 'Please password must not be empty';
                     }
+                    if (value.length < 6) {
+                      return 'Password must be at least 6 characters';
+                    }
+                    return null;
                   },
-                  onChanged: ((value) {
-                    password = value;
-                  }),
-                  decoration: InputDecoration(labelText: 'Password'),
                 ),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              InkWell(
-                onTap: () {
-                  _loginUser();
-                },
-                child: Container(
-                  width: MediaQuery.of(context).size.width - 40,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: Colors.yellow.shade900,
-                    borderRadius: BorderRadius.circular(10),
+                ForgotPassword(),
+                // Nút đăng nhập
+                InkWell(
+                  onTap: _loginUser,
+                  child: MyButtons(
+                    onTap: _loginUser,
+                    text: _isLoading ? 'Logging in...' : 'Login',
                   ),
-                  child: Center(
-                    child: _isLoading
-                        ? CircularProgressIndicator(
-                      color: Colors.white,
-                    )
-                        : Text(
-                      'Login',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 19,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 2),
+                ),
+                SizedBox(height: 15),
+                // Đăng ký tài khoản
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Don't have an account?",
+                      style: TextStyle(fontSize: 16),
                     ),
-                  ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => BuyerRegisterScreen(),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        "Register",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("Need An Account ?"),
-                  TextButton(onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) {
-                        return BuyerRegisterScreen();
-                      }),
-                    );
-                  }, child: Text("Register"))
-                ],
-              ),
-              SizedBox(height: 20), // Khoảng cách giữa các phần
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("Continue as Guest"),
-                  TextButton(
-                    onPressed: () {
-                      // Điều hướng đến màn hình chính hoặc trang của khách
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) {
-                          return MainScreen(); // Màn hình chính dành cho khách
-                        }),
-                      );
-                    },
-                    child: Text("Guest View"),
-                  ),
-                ],
-              ),
-            ],
+                // Chế độ Guest
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Continue as Guest",
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MainScreen(),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        "Guest View",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -10,6 +10,9 @@ import 'package:multi_store/controllers/auth_cotroller.dart';
 import 'package:multi_store/utils/show_snackBar.dart';
 import 'package:multi_store/views/buyers/auth/login_screen.dart';
 
+import '../../../vendor/views/screens/widgets/button.dart';
+import '../../../vendor/views/screens/widgets/text_field.dart';
+
 class BuyerRegisterScreen extends StatefulWidget {
   @override
   State<BuyerRegisterScreen> createState() => _BuyerRegisterScreenState();
@@ -19,16 +22,17 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
   final AuthController _authController = AuthController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  late String email;
-  late String fullName;
-  late String phoneNumber;
-  late String password;
+  // Controllers for text fields
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   bool _isLoading = false;
   Uint8List? _image;
   bool _imageSelected = false;
 
-  /// Đăng ký người dùng
+  // Sign up user method
   _signUpUser() async {
     setState(() {
       _isLoading = true;
@@ -36,42 +40,41 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
 
     if (_formKey.currentState!.validate()) {
       try {
-        // Đăng ký người dùng với Firebase Authentication
+        // Create user with Firebase Authentication
         UserCredential userCredential =
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: email,
-          password: password,
+            await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
         );
 
-        // Xử lý ảnh
+        // Handle image
         String imageUrl = '';
         Uint8List imageBytes;
 
         if (_image != null) {
-          // Nếu người dùng đã chọn ảnh
           imageBytes = _image!;
         } else {
-          // Nếu không, sử dụng ảnh mặc định từ assets
-          imageBytes = await rootBundle.load('assets/images/default_profile.jpg')
+          // Use a default profile image if none selected
+          imageBytes = await rootBundle
+              .load('assets/images/default_profile.jpg')
               .then((byteData) => byteData.buffer.asUint8List());
         }
 
-        // Tải ảnh lên Firebase Storage
-        String fileName =
-            '${userCredential.user!.uid}_profile.jpg'; // Tên file ảnh duy nhất
+        // Upload image to Firebase Storage
+        String fileName = '${userCredential.user!.uid}_profile.jpg';
         Reference storageRef =
-        FirebaseStorage.instance.ref().child('profile_images/$fileName');
+            FirebaseStorage.instance.ref().child('profile_images/$fileName');
         UploadTask uploadTask = storageRef.putData(imageBytes);
 
         TaskSnapshot snapshot = await uploadTask.whenComplete(() {});
         imageUrl = await snapshot.ref.getDownloadURL();
 
-        // Lưu thông tin người dùng vào Firestore
+        // Save user data to Firestore
         String uid = userCredential.user!.uid;
         await FirebaseFirestore.instance.collection('buyers').doc(uid).set({
-          'fullName': fullName,
-          'phoneNumber': phoneNumber,
-          'email': email,
+          'fullName': _fullNameController.text.trim(),
+          'phoneNumber': _phoneNumberController.text.trim(),
+          'email': _emailController.text.trim(),
           'buyerId': uid,
           'profileImage': imageUrl,
           'address': 'null',
@@ -107,7 +110,7 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
     }
   }
 
-  /// Chọn ảnh từ thư viện
+  // Pick image from gallery
   selectGalleryImage() async {
     Uint8List im = await _authController.pickProfileImage(ImageSource.gallery);
     setState(() {
@@ -116,7 +119,7 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
     });
   }
 
-  /// Chụp ảnh từ camera
+  // Take a photo from camera
   selectCameraImage() async {
     Uint8List im = await _authController.pickProfileImage(ImageSource.camera);
     setState(() {
@@ -125,7 +128,7 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
     });
   }
 
-  /// Dialog chọn ảnh
+  // Show dialog for image selection
   selectImage() async {
     showDialog(
       context: context,
@@ -174,161 +177,151 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "Create Customer's Account",
-                  style: TextStyle(
-                    fontSize: 20,
-                  ),
-                ),
-                Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 64,
-                      backgroundColor: Colors.yellow.shade900,
-                      backgroundImage: _image != null
-                          ? MemoryImage(_image!)
-                          : AssetImage('assets/images/default_profile.jpg')
-                      as ImageProvider,
-                    ),
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: IconButton(
-                        onPressed: () {
-                          selectImage();
-                        },
-                        icon: Icon(
-                          CupertinoIcons.photo,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                if (!_imageSelected)
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
                   Text(
-                    'Please select a profile image',
+                    "Create Customer's Account",
                     style: TextStyle(
-                      color: Colors.red,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                Padding(
-                  padding: const EdgeInsets.all(13.0),
-                  child: TextFormField(
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return 'Email must not be empty';
-                      } else if (!RegExp(r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+')
-                          .hasMatch(value)) {
-                        return 'Please enter a valid email';
-                      }
-                      return null;
-                    },
-                    onChanged: (value) {
-                      email = value;
-                    },
-                    decoration: InputDecoration(labelText: 'Enter Email'),
+                  SizedBox(height: 20),
+                  Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 64,
+                        backgroundColor: Colors.yellow.shade900,
+                        backgroundImage: _image != null
+                            ? MemoryImage(_image!)
+                            : AssetImage('assets/images/default_profile.jpg')
+                                as ImageProvider,
+                      ),
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: IconButton(
+                          onPressed: () {
+                            selectImage();
+                          },
+                          icon: Icon(
+                            CupertinoIcons.photo,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(13.0),
-                  child: TextFormField(
+                  if (!_imageSelected)
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        'Please select a profile image',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  SizedBox(height: 20),
+                  TextFieldInput(
+                      icon: Icons.mail_lock_outlined,
+                      textEditingController: _emailController,
+                      hintText: 'Enter your email',
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return 'Email must not be empty';
+                        } else if (!RegExp(
+                                r'^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+')
+                            .hasMatch(value)) {
+                          return 'Please enter a valid email';
+                        }
+                        return null;
+                      },
+                      textInputType: TextInputType.text),
+                  TextFieldInput(
+                    icon: Icons.person_2_outlined,
+                    textEditingController: _fullNameController,
+                    hintText: 'Enter your full name',
+                    textInputType: TextInputType.text,
                     validator: (value) {
                       if (value!.isEmpty) {
                         return 'Full name must not be empty';
                       }
                       return null;
                     },
-                    onChanged: (value) {
-                      fullName = value;
-                    },
-                    decoration: InputDecoration(labelText: 'Enter Full Name'),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(13.0),
-                  child: TextFormField(
+                  TextFieldInput(
+                    icon: Icons.phone_android_rounded,
+                    textEditingController: _phoneNumberController,
+                    hintText: 'Enter your phone number',
+                    textInputType: TextInputType.number,
                     validator: (value) {
                       if (value!.isEmpty) {
                         return 'Phone number must not be empty';
+                      } else if (!RegExp(r'^\d{10}$').hasMatch(value)) {
+                        return 'Phone number must be exactly 10 digits';
                       }
                       return null;
                     },
-                    onChanged: (value) {
-                      phoneNumber = value;
-                    },
-                    decoration: InputDecoration(labelText: 'Enter Phone Number'),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(13.0),
-                  child: TextFormField(
-                    obscureText: true,
+                  TextFieldInput(
+                    icon: Icons.lock_outline,
+                    textEditingController: _passwordController,
+                    hintText: 'Enter your password',
+                    textInputType: TextInputType.text,
+                    isPass: true,
                     validator: (value) {
                       if (value!.isEmpty) {
                         return 'Password must not be empty';
+                      } else if (value.length < 8) {
+                        return 'Password must be at least 8 characters';
+                      } else if (!RegExp(
+                              r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#\$%\^&\*\(\)]).{8,}$')
+                          .hasMatch(value)) {
+                        return 'Password must contain at least one letter, one number, and one special character';
                       }
                       return null;
                     },
-                    onChanged: (value) {
-                      password = value;
-                    },
-                    decoration: InputDecoration(labelText: 'Password'),
                   ),
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-                GestureDetector(
-                  onTap: () {
-                    _signUpUser();
-                  },
-                  child: Container(
-                    width: MediaQuery.of(context).size.width - 40,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: Colors.yellow.shade900,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Center(
-                      child: _isLoading
-                          ? CircularProgressIndicator(
-                        color: Colors.white,
-                      )
-                          : Text(
-                        'Register',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 19,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 2),
+                  SizedBox(height: 20),
+                  MyButtons(
+                      onTap: () {
+                        _signUpUser(); // Trigger sign-up process
+                      },
+                      text: _isLoading
+                          ? 'Registering...'
+                          : 'Register' // Button text
                       ),
-                    ),
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Already Have An Account ?'),
-                    TextButton(
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Already Have An Account ?',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      TextButton(
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) {
-                              return LoginScreen();
-                            }),
+                            MaterialPageRoute(
+                                builder: (context) => LoginScreen()),
                           );
                         },
-                        child: Text('Login')),
-                  ],
-                ),
-              ],
+                        child: Text(
+                          'Login',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

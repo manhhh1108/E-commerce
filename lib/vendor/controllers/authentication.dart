@@ -59,7 +59,6 @@ class AuthMethod {
     return res;
   }
 
-  // for sighout
   signOut() async {
     // await _auth.signOut();
   }

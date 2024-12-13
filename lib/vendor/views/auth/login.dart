@@ -112,7 +112,10 @@ class _SignupScreenState extends State<LoginVendorScreen> {
             ),
             //  we call our forgot password below the login in button
             ForgotPassword(),
-            MyButtons(onTap: loginUser, text: "Log In"),
+            MyButtons(
+              onTap: loginUser,
+              text: isLoading ? 'Logging in...' : 'Login',
+            ),
             Row(
               children: [
                 Expanded(

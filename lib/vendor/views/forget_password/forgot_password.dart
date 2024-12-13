@@ -102,7 +102,6 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                       emailController.clear();
                     },
 
-                    // if we remember the password then we can easily login
                     // if we forget the password then we apply this method
                     child: const Text(
                       "Send",
