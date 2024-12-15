@@ -3,6 +3,7 @@ import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:multi_store/provider/cart_provider.dart';
 import 'package:multi_store/provider/location_api.dart';
@@ -19,29 +20,27 @@ import 'package:multi_store/views/buyers/inner_screen/search_view.dart';
 import 'package:multi_store/views/buyers/main_screen.dart';
 import 'package:multi_store/views/buyers/nav_screen/cart_screen.dart';
 import 'package:multi_store/views/buyers/nav_screen/home_screen.dart';
-import 'package:multi_store/views/buyers/payment/key.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Stripe.publishableKey = PublishableKey;
+  await dotenv.load();
+  String publishableKey = dotenv.env['PUBLISHABLE_KEY'] ?? '';
+  Stripe.publishableKey = publishableKey;
   await Stripe.instance.applySettings();
 
-
-  // Firebase Initialization for Android and iOS
+  // Firebase initialization
   if (Platform.isAndroid) {
     await Firebase.initializeApp(
       options: FirebaseOptions(
-        apiKey: "AIzaSyC7SZ7DqmK4LyrqNAAvV--NxgnRADUDs2U",
-        appId: "1:35588038182:android:6abf54cc5ed824137210e7",
-        messagingSenderId: "35588038182",
-        projectId: "multi-store-e24b6",
-        storageBucket: "gs://multi-store-e24b6.firebasestorage.app",
+        apiKey: dotenv.env['FIREBASE_API_KEY']!,
+        appId: dotenv.env['FIREBASE_APP_ID']!,
+        messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID']!,
+        projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
+        storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
       ),
     );
-    await FirebaseAppCheck.instance.activate();
   } else {
     await Firebase.initializeApp();
   }
@@ -77,7 +76,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         fontFamily: 'Brand-Bold',
       ),
-      home: LoginScreen(),
+      home: BuyerRegisterScreen(),
     );
   }
 }

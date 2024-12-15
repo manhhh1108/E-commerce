@@ -103,7 +103,10 @@ class _SignupScreenState extends State<LoginVendorScreen> {
               isPass: true,
             ),
             ForgotPassword(),
-            MyButtons(onTap: loginUser, text: "Log In"),
+            MyButtons(
+              onTap: loginUser,
+              text: isLoading ? 'Logging in...' : 'Login',
+            ),
             Row(
               children: [
                 Expanded(

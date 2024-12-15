@@ -112,14 +112,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               child: Text(
                 "\$ ${productPrice.toStringAsFixed(2)}",
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Colors.green.shade800,
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Text(
                 productName,
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
@@ -166,7 +166,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
                     description,
-                    style: TextStyle(fontSize: 17, color: Colors.black),
+                    style: TextStyle(fontSize: 18, color: Colors.black),
                     textAlign: TextAlign.center,
                   ),
                 ),
