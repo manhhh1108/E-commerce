@@ -4,7 +4,7 @@ import 'package:multi_store/utils/show_snackBar.dart';
 import 'package:multi_store/vendor/views/forget_password/forgot_password.dart';
 import 'package:multi_store/views/buyers/auth/register_screen.dart';
 import 'package:multi_store/views/buyers/main_screen.dart';
-
+import 'package:multi_store/vendor/views/auth/login.dart';
 import '../../../vendor/views/screens/widgets/button.dart';
 import '../../../vendor/views/screens/widgets/text_field.dart'; // Widget TextFieldInput
 
@@ -178,6 +178,30 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                       child: Text(
                         "Guest View",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
+                // Login cho Vendor
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Vendor Login",
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LoginVendorScreen(), // Thay bằng màn hình login Vendor của bạn
+                          ),
+                        );
+                      },
+                      child: Text(
+                        "Login as Vendor",
                         style: TextStyle(fontSize: 16),
                       ),
                     ),
