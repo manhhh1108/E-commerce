@@ -25,6 +25,7 @@ class UploadScreen extends StatelessWidget {
         key: _formKey,
         child: Scaffold(
           appBar: AppBar(
+            automaticallyImplyLeading: false,
             backgroundColor: Colors.yellow.shade900,
             bottom: TabBar(tabs: [
               Tab(

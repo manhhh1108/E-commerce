@@ -127,7 +127,7 @@ class _SignupScreenState extends State<LoginVendorScreen> {
                     children: [
                       Text(
                         "Don't have an account? ",
-                        style: TextStyle(fontSize: 16),
+                        style: TextStyle(fontSize: 17),
                       ),
                       GestureDetector(
                         onTap: () {
@@ -141,7 +141,7 @@ class _SignupScreenState extends State<LoginVendorScreen> {
                           "SignUp",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: 17,
                             color: Colors.blue,
                           ),
                         ),
@@ -153,7 +153,7 @@ class _SignupScreenState extends State<LoginVendorScreen> {
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => LoginScreen(), // Màn hình đăng nhập khách
+                          builder: (context) => LoginScreen(),
                         ),
                       );
                     },
@@ -161,7 +161,7 @@ class _SignupScreenState extends State<LoginVendorScreen> {
                       "Login as Customer",
                       style: TextStyle(
                         color: Colors.blue,
-                        fontSize: 16,
+                        fontSize: 17,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

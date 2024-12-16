@@ -256,25 +256,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             SnackBar(content: Text('Added to cart successfully!')),
           );
         },
-        child: Container(
-          height: 60,
-          width: MediaQuery.of(context).size.width,
-          decoration: BoxDecoration(
-            color: _selectedSize == null ? Colors.grey : Colors.yellow.shade900,
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(CupertinoIcons.cart, color: Colors.white),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  'Add To Cart',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            height: 60,
+            width: MediaQuery.of(context).size.width,
+            decoration: BoxDecoration(
+              color: _selectedSize == null ? Colors.grey : Colors.yellow.shade900,
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.cart, color: Colors.white),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'Add To Cart',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

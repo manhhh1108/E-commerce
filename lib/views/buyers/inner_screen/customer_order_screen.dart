@@ -1,16 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
-import 'package:multi_store/views/buyers/auth/login_screen.dart';
 
 class CustomerOrderScreen extends StatelessWidget {
   CustomerOrderScreen({super.key});
 
   // Hàm định dạng ngày
-  String formatedDate(String? date) {
-    if (date == null) return 'N/A';
-    final DateTime parsedDate = DateTime.parse(date);
+  String formatedDate(Timestamp? timestamp) {
+    if (timestamp == null) return 'N/A';
+    final DateTime parsedDate = timestamp.toDate();
     final DateFormat outputFormat = DateFormat('dd/MM/yyyy');
     return outputFormat.format(parsedDate);
   }
@@ -20,7 +20,7 @@ class CustomerOrderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Lấy danh sách đơn hàng từ Firestore
-    final Stream<QuerySnapshot> _ordersStream = FirebaseFirestore.instance
+    final Stream<QuerySnapshot> _ordersStream = _firestore
         .collection('orders')
         .where('buyerId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
         .snapshots();
@@ -29,7 +29,7 @@ class CustomerOrderScreen extends StatelessWidget {
       appBar: AppBar(
         iconTheme: IconThemeData(color: Colors.white),
         backgroundColor: Colors.yellow.shade900,
-        title: Text(
+        title: const Text(
           'My Orders',
           style: TextStyle(
             fontWeight: FontWeight.bold,
@@ -47,7 +47,6 @@ class CustomerOrderScreen extends StatelessWidget {
             );
           }
 
-          // Hiển thị vòng tròn loading khi đang chờ dữ liệu
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(),
@@ -84,105 +83,159 @@ class CustomerOrderScreen extends StatelessWidget {
                 return const Center(child: Text('No items in this order'));
               }
 
-              // Lấy thông tin người mua và kiểm tra null
-              final buyerInfo =
-                  data['buyerInfo'] as Map<String, dynamic>? ?? {};
-              final fullName = buyerInfo['fullName'] ?? 'N/A';
-              final phone = buyerInfo['phone'] ?? 'N/A';
-              final address = buyerInfo['address'] ?? 'N/A';
+              final fullName = data['fullName'] ?? 'N/A';
+              final phone = data['phone'] ?? 'N/A';
+              final address = data['address'] ?? 'N/A';
+              final paymentMethod = data['paymentMethod'] ?? 'N/A';
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Sử dụng ExpansionTile để ẩn/hiển thị thông tin đơn hàng và người mua
-                  ExpansionTile(
-                    title: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.white,
-                        radius: 14,
-                        child: data['accepted'] == true
-                            ? const Icon(Icons.check_circle,
-                                color: Colors.green)
-                            : const Icon(Icons.pending, color: Colors.orange),
+              return Slidable(
+                key: ValueKey(data['orderId']),
+                startActionPane: ActionPane(
+                  motion: const ScrollMotion(),
+                  children: [
+                    SlidableAction(
+                      onPressed: (context) async {
+                        try {
+                          final orderStatus = data['orderStatus'] ?? '';
+                          final paymentStatus = data['paymentStatus'] ??
+                              'unpaid'; // Dùng giá trị mặc định nếu không có
+                          if (orderStatus == 'Pending' &&
+                              paymentStatus == 'unpaid') {
+                            await _firestore
+                                .collection('orders')
+                                .doc(document.id)
+                                .update({'orderStatus': 'Canceled'});
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Order has been canceled.')));
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'Only unpaid and pending orders can be canceled.')));
+                          }
+                        } catch (e) {
+                          print("Lỗi khi hủy đơn hàng: $e");
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text('Failed to cancel the order.')));
+                        }
+                      },
+                      backgroundColor: Colors.red,
+                      icon: Icons.close,
+                      label: 'Cancel Order',
+                    ),
+                  ],
+                ),
+                child: ExpansionTile(
+                  title: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.white,
+                      radius: 14,
+                      child: data['orderStatus'] == 'Canceled'
+                          ? Icon(Icons.cancel, color: Colors.red)
+                          : data['orderStatus'] == 'Completed'
+                              ? Icon(Icons.check_circle, color: Colors.green)
+                              : data['orderStatus'] == 'Delivering'
+                                  ? Icon(Icons.delivery_dining,
+                                      color: Colors.purple)
+                                  : data['orderStatus'] == 'Preparing'
+                                      ? Icon(Icons.settings, color: Colors.blue)
+                                      : Icon(Icons.pending,
+                                          color: Colors.yellow.shade900),
+                    ),
+                    title: Text(
+                      data['orderStatus'] == 'Canceled'
+                          ? 'Canceled'
+                          : data['orderStatus'] == 'Completed'
+                              ? 'Completed'
+                              : data['orderStatus'] == 'Delivering'
+                                  ? 'Delivering'
+                                  : data['orderStatus'] == 'Preparing'
+                                      ? 'Preparing'
+                                      : 'Pending',
+                      style: TextStyle(
+                        color: data['orderStatus'] == 'Canceled'
+                            ? Colors.red
+                            : data['orderStatus'] == 'Completed'
+                                ? Colors.green
+                                : data['orderStatus'] == 'Delivering'
+                                    ? Colors.purple
+                                    : data['orderStatus'] == 'Preparing'
+                                        ? Colors.blue
+                                        : Colors.orange,
+                        fontWeight: FontWeight.bold,
                       ),
-                      title: Text(
-                        data['accepted'] == true ? 'Accepted' : 'Pending',
-                        style: TextStyle(
-                          color: data['accepted'] == true
-                              ? Colors.green
-                              : Colors.orange,
-                          fontWeight: FontWeight.bold,
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Order ID: ${data['orderId'] ?? 'N/A'}'),
+                        Text('Date: ${formatedDate(data['orderDate'])}'),
+                        Text(
+                          'Total Price: \$${data['totalOrderPrice'] ?? '0'}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
                         ),
-                      ),
-                      subtitle: Column(
+                        Text(
+                          '$paymentMethod',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                              fontSize: 15),
+                        ),
+                      ],
+                    ),
+                  ),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Order ID: ${data['orderId'] ?? 'N/A'}'),
-                          Text('Date: ${formatedDate(data['orderDate'])}'),
-                          Text(
-                            'Total Price: \$${data['totalOrderPrice'] ?? '0'}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.yellow.shade900,
-                            ),
+                          const Text('Buyer Info:'),
+                          Text('Full Name: $fullName'),
+                          Text('Phone: $phone'),
+                          Text('Address: $address'),
+                          const Divider(),
+                          ListView.builder(
+                            physics: const NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
+                            itemCount: cartItems.length,
+                            itemBuilder: (context, index) {
+                              final item =
+                                  cartItems[index] as Map<String, dynamic>;
+
+                              final productImage =
+                                  item['productImage'] as List<dynamic>?;
+                              final productName = item['productName'] ?? 'N/A';
+                              final productPrice = item['productPrice'] ?? '0';
+                              final productSize = item['productSize'] ?? 'N/A';
+                              final quantity = item['quantity'] ?? 0;
+
+                              return ListTile(
+                                leading: CircleAvatar(
+                                  backgroundImage: productImage != null &&
+                                          productImage.isNotEmpty
+                                      ? NetworkImage(productImage[0] ?? '')
+                                      : null,
+                                ),
+                                title: Text(productName),
+                                subtitle: Text(
+                                    'Price: \$${productPrice} | Size: ${productSize}'),
+                                trailing: Text('Qty: $quantity'),
+                              );
+                            },
                           ),
+                          Divider(),
                         ],
                       ),
                     ),
-                    children: [
-                      // Thông tin người mua
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Buyer Info:'),
-                            Text('Full Name: ${document['fullName']}'),
-                            Text('Phone: ${document['phone']}'),
-                            Text('Address: ${document['address']}'),
-                            const Divider(),
-                            // Hiển thị danh sách sản phẩm trong đơn hàng
-                            ListView.builder(
-                              physics: const NeverScrollableScrollPhysics(),
-                              shrinkWrap: true,
-                              itemCount: cartItems.length,
-                              itemBuilder: (context, index) {
-                                final item =
-                                    cartItems[index] as Map<String, dynamic>;
-
-                                // Safely access fields in cart item
-                                final productImage =
-                                    item['productImage'] as List<dynamic>?;
-                                final productName =
-                                    item['productName'] ?? 'No name';
-                                final productPrice =
-                                    item['productPrice'] ?? '0';
-                                final productSize =
-                                    item['productSize'] ?? 'N/A';
-                                final quantity = item['quantity'] ?? 0;
-
-                                return ListTile(
-                                  leading: CircleAvatar(
-                                    backgroundImage: productImage != null &&
-                                            productImage.isNotEmpty
-                                        ? NetworkImage(productImage[0] ?? '')
-                                        : null,
-                                  ),
-                                  title: Text(productName),
-                                  subtitle: Text(
-                                    'Price: \$${productPrice} | Size: ${productSize}',
-                                  ),
-                                  trailing: Text('Qty: $quantity'),
-                                );
-                              },
-                            ),
-                            const Divider(),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               );
             }).toList(),
           );

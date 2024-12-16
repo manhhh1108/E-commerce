@@ -7,14 +7,19 @@ class StoreScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Stream<QuerySnapshot> _vendorsStream =
-    FirebaseFirestore.instance.collection('vendors').snapshots();
+    final Stream<QuerySnapshot> _vendorsStream = FirebaseFirestore.instance
+        .collection('vendors')
+        .where('approved', isEqualTo: true)
+        .snapshots();
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        iconTheme: IconThemeData(color: Colors.white),
         title: Text(
           'Stores',
-          style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.yellow.shade900,
         centerTitle: true,
@@ -36,7 +41,10 @@ class StoreScreen extends StatelessWidget {
             return Center(
               child: Text(
                 "No stores found",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey),
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey),
               ),
             );
           }
@@ -53,11 +61,12 @@ class StoreScreen extends StatelessWidget {
               itemCount: snapshot.data!.docs.length,
               itemBuilder: (context, index) {
                 final storeData = snapshot.data!.docs[index].data()
-                as Map<String, dynamic>; // Parse document data
+                    as Map<String, dynamic>; // Parse document data
 
                 return GestureDetector(
                   onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
                       return StoreDetailScreen(
                         storeData: storeData,
                       );
@@ -73,18 +82,19 @@ class StoreScreen extends StatelessWidget {
                       children: [
                         Expanded(
                           child: ClipRRect(
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(12)),
                             child: storeData['image'] != null
                                 ? Image.network(
-                              storeData['image'],
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                            )
+                                    storeData['image'],
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                  )
                                 : Image.asset(
-                              'assets/placeholder.png',
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                            ),
+                                    'assets/placeholder.png',
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                  ),
                           ),
                         ),
                         Padding(
@@ -105,7 +115,8 @@ class StoreScreen extends StatelessWidget {
                               const SizedBox(height: 4),
                               Text(
                                 storeData['countryValue'] ?? 'No Country',
-                                style: TextStyle(fontSize: 14, color: Colors.grey),
+                                style:
+                                    TextStyle(fontSize: 14, color: Colors.grey),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -113,15 +124,16 @@ class StoreScreen extends StatelessWidget {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0, vertical: 4.0),
                           child: ElevatedButton(
                             onPressed: () {
                               Navigator.push(context,
                                   MaterialPageRoute(builder: (context) {
-                                    return StoreDetailScreen(
-                                      storeData: storeData,
-                                    );
-                                  }));
+                                return StoreDetailScreen(
+                                  storeData: storeData,
+                                );
+                              }));
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.yellow.shade900,

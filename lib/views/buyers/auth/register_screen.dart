@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -32,6 +34,13 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
   Uint8List? _image;
   bool _imageSelected = false;
 
+  String hashPassword(String password) {
+    // Sử dụng SHA-256 để băm mật khẩu
+    final bytes = utf8.encode(password);
+    final digest = sha256.convert(bytes);
+    return digest.toString(); // Chuyển thành chuỗi
+  }
+
   // Sign up user method
   _signUpUser() async {
     setState(() {
@@ -46,6 +55,8 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
+
+        String hashedPassword = hashPassword(_passwordController.text.trim());
 
         // Handle image
         String imageUrl = '';
@@ -78,6 +89,7 @@ class _BuyerRegisterScreenState extends State<BuyerRegisterScreen> {
           'buyerId': uid,
           'profileImage': imageUrl,
           'address': 'null',
+          'password': hashedPassword,
         });
 
         setState(() {

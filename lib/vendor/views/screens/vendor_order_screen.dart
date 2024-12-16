@@ -10,8 +10,9 @@ class VendorOrderScreen extends StatelessWidget {
   VendorOrderScreen({super.key});
 
   // Hàm định dạng ngày
-  String formatedDate(String date) {
-    final DateTime parsedDate = DateTime.parse(date);
+  String formatedDate(Timestamp? timestamp) {
+    if (timestamp == null) return 'N/A';
+    final DateTime parsedDate = timestamp.toDate();
     final DateFormat outputFormat = DateFormat('dd/MM/yyyy');
     return outputFormat.format(parsedDate);
   }
@@ -21,28 +22,30 @@ class VendorOrderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+
+    // Nếu user chưa đăng nhập
     if (user == null) {
       return Center(
         child: TextButton(
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                      LoginVendorScreen()), // Điều hướng đến LoginVendorScreen
+              MaterialPageRoute(builder: (context) => LoginVendorScreen()),
             );
           },
-          child: Text('Login to Continue', style: TextStyle(fontSize: 18)),
+          child:
+              const Text('Login to Continue', style: TextStyle(fontSize: 18)),
         ),
       );
     }
+
     // Lấy danh sách đơn hàng từ Firestore
-    final Stream<QuerySnapshot> _ordersStream = FirebaseFirestore.instance
-        .collection('orders')
-        .snapshots();
+    final Stream<QuerySnapshot> _ordersStream =
+        _firestore.collection('orders').snapshots();
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         iconTheme: const IconThemeData(color: Colors.white),
         backgroundColor: Colors.yellow.shade900,
         title: const Center(
@@ -61,161 +64,204 @@ class VendorOrderScreen extends StatelessWidget {
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           // Xử lý lỗi
           if (snapshot.hasError) {
-            return const Center(
-              child: Text('Something went wrong'),
-            );
+            return const Center(child: Text('Something went wrong'));
           }
 
           // Hiển thị vòng tròn loading khi đang chờ dữ liệu
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           // Danh sách đơn hàng
           final orders = snapshot.data!.docs;
 
+          // Lọc các đơn hàng có chứa sản phẩm thuộc vendor hiện tại
+          final filteredOrders = orders.where((document) {
+            final data = document.data() as Map<String, dynamic>;
+            final cartItems = data['cartItems'] as List<dynamic>;
+
+            return cartItems.any((item) => item['vendorId'] == user.uid);
+          }).toList();
+
           // Xử lý nếu không có đơn hàng nào
-          if (orders.isEmpty) {
+          if (filteredOrders.isEmpty) {
             return const Center(
               child: Text(
-                'No Orders Yet!',
+                'No Orders for Your Shop Yet!',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             );
           }
 
-          // Hiển thị danh sách đơn hàng
+          // Hiển thị danh sách đơn hàng đã lọc
           return ListView(
-            children: orders.map((DocumentSnapshot document) {
+            children: filteredOrders.map((DocumentSnapshot document) {
               final data = document.data() as Map<String, dynamic>;
               final cartItems = data['cartItems'] as List<dynamic>;
 
-              // Lấy thông tin người mua và kiểm tra null
-              final buyerInfo = data['buyerInfo'] as Map<String, dynamic>?;
-              final fullName = buyerInfo?['fullName'] ?? 'N/A';
-              final phone = buyerInfo?['phone'] ?? 'N/A';
-              final address = buyerInfo?['address'] ?? 'N/A';
+              final fullName = data['fullName'] ?? 'N/A';
+              final phone = data['phone'] ?? 'N/A';
+              final address = data['address'] ?? 'N/A';
+              final paymentMethod = data['paymentMethod'] ?? 'N/A';
+
+              // Lọc sản phẩm chỉ thuộc shop hiện tại
+              final filteredItems = cartItems.where((item) {
+                return item['vendorId'] == user.uid;
+              }).toList();
+
+              // Tính tổng giá trị của các sản phẩm thuộc vendor hiện tại
+              double totalPrice = 0;
+              for (var item in filteredItems) {
+                final price =
+                    double.tryParse(item['productPrice'].toString()) ?? 0;
+                final quantity = item['quantity'] ?? 0;
+                totalPrice += price * quantity;
+              }
+
+              // Lấy màu chữ dựa trên trạng thái đơn hàng
+              Color getStatusColor(String status) {
+                switch (status) {
+                  case 'Canceled':
+                    return Colors.red;
+                  case 'Preparing':
+                    return Colors.blue;
+                  case 'Delivering':
+                    return Colors.purple;
+                  case 'Completed':
+                    return Colors.green;
+                  default:
+                    return Colors.yellow.shade900;
+                }
+              }
 
               return Slidable(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                key: ValueKey(data['orderId']),
+                startActionPane: ActionPane(
+                  motion: const ScrollMotion(),
                   children: [
-                    // Sử dụng ExpansionTile để ẩn/hiển thị thông tin đơn hàng và người mua
-                    ExpansionTile(
-                      title: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.white,
-                          radius: 14,
-                          child: data['accepted'] == true
-                              ? const Icon(Icons.check_circle,
-                                  color: Colors.green)
-                              : const Icon(Icons.pending, color: Colors.orange),
-                        ),
-                        title: data['accepted'] == true
-                            ? Text(
-                                'Accepted',
-                                style: TextStyle(
-                                  color: Colors.green,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              )
-                            : Text(
-                                'Pending',
-                                style: TextStyle(
-                                  color: Colors.orange,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Order ID: ${data['orderId']}'),
-                            Text('Date: ${formatedDate(data['orderDate'])}'),
-                            Text(
-                              'Total Price: \$${data['totalOrderPrice']}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.yellow.shade900,
-                              ),
-                            ),
-                          ],
-                        ),
+                    // Check if the order is not canceled before allowing status update
+                    if (data['orderStatus'] != 'Canceled')
+                      SlidableAction(
+                        onPressed: (context) async {
+                          await _firestore
+                              .collection('orders')
+                              .doc(document.id)
+                              .update({
+                            'orderStatus': 'Preparing',
+                          });
+                        },
+                        backgroundColor: Colors.blue,
+                        icon: Icons.settings,
+                        label: 'Preparing',
                       ),
+                    if (data['orderStatus'] != 'Canceled')
+                      SlidableAction(
+                        onPressed: (context) async {
+                          await _firestore
+                              .collection('orders')
+                              .doc(document.id)
+                              .update({
+                            'orderStatus': 'Delivering',
+                          });
+                        },
+                        backgroundColor: Colors.orange,
+                        icon: Icons.delivery_dining,
+                        label: 'Delivering',
+                      ),
+                    if (data['orderStatus'] != 'Canceled')
+                      SlidableAction(
+                        onPressed: (context) async {
+                          await _firestore
+                              .collection('orders')
+                              .doc(document.id)
+                              .update({
+                            'orderStatus': 'Completed',
+                          });
+                        },
+                        backgroundColor: Colors.green,
+                        icon: Icons.check,
+                        label: 'Completed',
+                      ),
+                  ],
+                ),
+                child: ExpansionTile(
+                  title: ListTile(
+                    leading: CircleAvatar(
+                      child: Icon(
+                        data['orderStatus'] == 'Completed'
+                            ? Icons.check
+                            : data['orderStatus'] == 'Delivering'
+                                ? Icons.delivery_dining
+                                : data['orderStatus'] == 'Preparing'
+                                    ? Icons.settings
+                                    : data['orderStatus'] == 'Canceled'
+                                        ? Icons.cancel
+                                        : Icons.pending,
+                        color: getStatusColor(data['orderStatus'] ?? 'Pending'),
+                      ),
+                    ),
+                    title: Text(
+                      data['orderStatus'] ?? 'Pending',
+                      style: TextStyle(
+                        color: getStatusColor(data['orderStatus'] ?? 'Pending'),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Thông tin người mua
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Buyer Info:'),
-                              Text('Full Name: ${document['fullName']}'),
-                              Text('Phone: ${document['phone']}'),
-                              Text('Address: ${document['address']}'),
-                              const Divider(),
-                              // Hiển thị danh sách sản phẩm trong đơn hàng
-                              ListView.builder(
-                                physics: const NeverScrollableScrollPhysics(),
-                                shrinkWrap: true,
-                                itemCount: cartItems.length,
-                                itemBuilder: (context, index) {
-                                  final item =
-                                      cartItems[index] as Map<String, dynamic>;
-                                  return ListTile(
-                                    leading: CircleAvatar(
-                                      backgroundImage:
-                                          NetworkImage(item['productImage'][0]),
-                                    ),
-                                    title: Text(item['productName']),
-                                    subtitle: Text(
-                                      'Price: \$${item['productPrice']} | Size: ${item['productSize']}',
-                                    ),
-                                    trailing: Text('Qty: ${item['quantity']}'),
-                                  );
-                                },
-                              ),
-                              const Divider(),
-                            ],
+                        Text('Order ID: ${data['orderId']}'),
+                        Text('Date: ${formatedDate(data['orderDate'])}'),
+                        Text(
+                          'Total Price: \$${totalPrice.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                        Text(
+                          '$paymentMethod',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-                key: ValueKey(document['orderId']),
-                startActionPane: ActionPane(
-                  motion: const ScrollMotion(),
-                  dismissible: DismissiblePane(onDismissed: () {}),
+                  ),
                   children: [
-                    SlidableAction(
-                      onPressed: (context) async {
-                        await _firestore
-                            .collection('orders')
-                            .doc(document['orderId'])
-                            .update({
-                          'accepted': false,
-                        });
-                      },
-                      backgroundColor: Color(0xFFFE4A49),
-                      foregroundColor: Colors.white,
-                      icon: Icons.delete,
-                      label: 'Reject',
-                    ),
-                    SlidableAction(
-                      onPressed: (context) async {
-                        await _firestore
-                            .collection('orders')
-                            .doc(document['orderId'])
-                            .update({
-                          'accepted': true,
-                        });
-                      },
-                      backgroundColor: Color(0xFF21B7CA),
-                      foregroundColor: Colors.white,
-                      icon: Icons.check,
-                      label: 'Accept',
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Buyer Info:'),
+                          Text('Full Name: $fullName'),
+                          Text('Phone: $phone'),
+                          Text('Address: $address'),
+                          const Divider(),
+                          ListView.builder(
+                            physics: const NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
+                            itemCount: filteredItems.length,
+                            itemBuilder: (context, index) {
+                              final item =
+                                  filteredItems[index] as Map<String, dynamic>;
+                              return ListTile(
+                                leading: CircleAvatar(
+                                  backgroundImage:
+                                      NetworkImage(item['productImage'][0]),
+                                ),
+                                title: Text(item['productName']),
+                                subtitle: Text(
+                                    'Price: \$${item['productPrice']} | Size: ${item['productSize']}'),
+                                trailing: Text('Qty: ${item['quantity']}'),
+                              );
+                            },
+                          ),
+                          Divider(),
+                        ],
+                      ),
                     ),
                   ],
                 ),

@@ -16,6 +16,7 @@ class EarningsScreen extends StatelessWidget {
     if (user == null) {
       return Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           iconTheme: IconThemeData(color: Colors.white),
           backgroundColor: Colors.yellow.shade900,
           title: const Text(
@@ -54,6 +55,7 @@ class EarningsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.yellow.shade900,
         title: const Text(
           'Earnings',
@@ -100,12 +102,11 @@ class EarningsScreen extends StatelessWidget {
                 FutureBuilder<QuerySnapshot>(
                   future: FirebaseFirestore.instance
                       .collection('orders')
-                      .where('vendorIds',
-                          arrayContains: vendorId) // Lọc đơn hàng theo vendorId
+                      .where('orderStatus', isEqualTo: 'Completed')  // Only completed orders
+                      .where('paymentStatus', isEqualTo: 'paid')  // Only paid orders
                       .get(),
                   builder: (context, ordersSnapshot) {
-                    if (ordersSnapshot.connectionState ==
-                        ConnectionState.waiting) {
+                    if (ordersSnapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
                     }
 
@@ -115,22 +116,18 @@ class EarningsScreen extends StatelessWidget {
                     if (ordersSnapshot.hasData) {
                       for (var order in ordersSnapshot.data!.docs) {
                         final orderData = order.data() as Map<String, dynamic>;
-                        final cartItems =
-                            orderData['cartItems'] as List<dynamic>? ?? [];
+                        final cartItems = orderData['cartItems'] as List<dynamic>? ?? [];
 
-                        // Duyệt qua từng item trong cartItems
+                        // Iterate through cartItems to calculate earnings for the vendor
                         for (var item in cartItems) {
                           if (item is Map<String, dynamic>) {
-                            final productPrice =
-                                (item['productPrice'] ?? 0) as num;
+                            final productPrice = (item['productPrice'] ?? 0) as num;
                             final quantity = (item['quantity'] ?? 0) as num;
 
-                            // Kiểm tra nếu vendorId của sản phẩm trong cartItem khớp với vendorId hiện tại
+                            // Check if the vendorId matches the current vendor
                             if (item['vendorId'] == vendorId) {
-                              totalEarnings +=
-                                  productPrice * quantity; // Tính thu nhập
-                              totalItemsSold +=
-                                  quantity.toInt(); // Tính số lượng đã bán
+                              totalEarnings += productPrice * quantity; // Calculate earnings
+                              totalItemsSold += quantity.toInt(); // Calculate total items sold
                             }
                           }
                         }
@@ -153,15 +150,16 @@ class EarningsScreen extends StatelessWidget {
                           color: Colors.yellow.shade900,
                         ),
                         const SizedBox(height: 20),
-                        // Thêm nút Withdrawal
+                        // Add a Withdrawal Button
                         ElevatedButton(
                           onPressed: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context){
-                              return WithdrawalScreen();
-                            }));
+                            Navigator.push(context,
+                                MaterialPageRoute(builder: (context) {
+                                  return WithdrawalScreen();
+                                }));
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.yellow.shade900, // Màu nút
+                            backgroundColor: Colors.yellow.shade900,
                             padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
@@ -170,16 +168,13 @@ class EarningsScreen extends StatelessWidget {
                           child: const Text(
                             "Request Withdrawal",
                             style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white
-                            ),
+                                fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                         ),
                       ],
                     );
                   },
-                ),
+                )
               ],
             ),
           );
@@ -235,12 +230,12 @@ class EarningsScreen extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(fontSize: 18, color: Colors.white),
+            style: TextStyle(fontSize: 18, color: Colors.white),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -251,3 +246,4 @@ class EarningsScreen extends StatelessWidget {
     );
   }
 }
+

@@ -12,6 +12,7 @@ class CategoriesScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         iconTheme: IconThemeData(color: Colors.white),
         backgroundColor: Colors.yellow.shade900,
         title: Text(
