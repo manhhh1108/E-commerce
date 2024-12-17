@@ -16,7 +16,7 @@ class StoreDetailScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(storeData['businessName']),
+        title: Text(storeData['businessName'], style: TextStyle(fontWeight: FontWeight.bold),),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _productsStream,

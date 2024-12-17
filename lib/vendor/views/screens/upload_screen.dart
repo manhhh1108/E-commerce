@@ -31,25 +31,25 @@ class UploadScreen extends StatelessWidget {
               Tab(
                 child: Text(
                   'General',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
+                  style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
                 ),
               ),
               Tab(
                 child: Text(
                   'Shipping',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
+                  style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
                 ),
               ),
               Tab(
                 child: Text(
                   'Attributes',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
+                  style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
                 ),
               ),
               Tab(
                 child: Text(
                   'Images',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
+                  style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
                 ),
               ),
             ]),

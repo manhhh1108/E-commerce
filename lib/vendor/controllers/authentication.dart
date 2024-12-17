@@ -13,15 +13,25 @@ class AuthMethod {
     required String name,
   }) async {
     String res = "Some error Occurred";
+
+    // Define a regex for password validation
+    final passwordRegEx =
+        RegExp(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$');
+
     try {
-      if (email.isNotEmpty || password.isNotEmpty || name.isNotEmpty) {
-        // register user in auth with email and password
+      if (email.isEmpty || password.isEmpty || name.isEmpty) {
+        res = "Please fill out all fields";
+      } else if (!passwordRegEx.hasMatch(password)) {
+        res =
+            "Password must be at least 8 characters long and include at least one letter, one number, and one special character.";
+      } else {
+        // Register user in auth with email and password
         UserCredential cred = await _auth.createUserWithEmailAndPassword(
           email: email,
           password: password,
         );
-        // add user to your  firestore database
-        print(cred.user!.uid);
+
+        // Add user to your Firestore database
         await _firestore.collection("vendors").doc(cred.user!.uid).set({
           'name': name,
           'email': email,
@@ -31,8 +41,9 @@ class AuthMethod {
         res = "success";
       }
     } catch (err) {
-      return err.toString();
+      res = err.toString();
     }
+
     return res;
   }
 

@@ -12,7 +12,6 @@ class CategoriesScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
         iconTheme: IconThemeData(color: Colors.white),
         backgroundColor: Colors.yellow.shade900,
         title: Text(
@@ -20,7 +19,7 @@ class CategoriesScreen extends StatelessWidget {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center, // Căn giữa chữ
         ),
-        centerTitle: true,  // Đảm bảo tiêu đề luôn được căn giữa
+        centerTitle: true,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _productStream,

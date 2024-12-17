@@ -36,7 +36,7 @@ class _MainScreenState extends State<MainScreen> {
             });
           },
           unselectedItemColor: Colors.black,
-          selectedItemColor: Colors.yellow.shade900,
+          selectedItemColor: Colors.black,
           items: [
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.home),

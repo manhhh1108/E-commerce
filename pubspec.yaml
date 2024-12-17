@@ -103,14 +103,14 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-     - family: Brand-Bold
+     - family: San-Francisco
        fonts:
-         - asset: assets/fonts/GemunuLibre-Bold.ttf
+         - asset: assets/fonts/SanFranciscoDisplay-Bold.otf
 
 
      - family: Semi-Bold
        fonts:
-         - asset: assets/fonts/GemunuLibre-SemiBold.ttf
+         - asset: assets/fonts/SanFranciscoDisplay-Semibold.otf
 
            weight: 700
   #

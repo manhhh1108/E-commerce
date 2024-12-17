@@ -18,7 +18,7 @@ class AllProductScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: Text(categoryData['categoryName']),
+        title: Text(categoryData['categoryName'],style: TextStyle(fontWeight: FontWeight.bold),),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _productsStream,
