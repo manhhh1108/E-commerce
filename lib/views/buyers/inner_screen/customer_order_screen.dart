@@ -87,45 +87,40 @@ class CustomerOrderScreen extends StatelessWidget {
               final phone = data['phone'] ?? 'N/A';
               final address = data['address'] ?? 'N/A';
               final paymentMethod = data['paymentMethod'] ?? 'N/A';
+              final orderStatus = data['orderStatus'] ?? 'Pending';
 
               return Slidable(
                 key: ValueKey(data['orderId']),
                 startActionPane: ActionPane(
                   motion: const ScrollMotion(),
                   children: [
-                    SlidableAction(
-                      onPressed: (context) async {
-                        try {
-                          final orderStatus = data['orderStatus'] ?? '';
-                          final paymentStatus = data['paymentStatus'] ??
-                              'unpaid'; // Dùng giá trị mặc định nếu không có
-                          if (orderStatus == 'Pending' &&
-                              paymentStatus == 'unpaid') {
-                            await _firestore
-                                .collection('orders')
-                                .doc(document.id)
-                                .update({'orderStatus': 'Canceled'});
+                    // Kiểm tra trạng thái đơn hàng trước khi hiển thị nút hủy
+                    if (orderStatus != 'Completed') // Chỉ cho phép hủy nếu không phải "Completed"
+                      SlidableAction(
+                        onPressed: (context) async {
+                          try {
+                            final paymentStatus = data['paymentStatus'] ?? 'unpaid'; // Dùng giá trị mặc định nếu không có
+                            if (orderStatus == 'Pending' && paymentStatus == 'unpaid') {
+                              await _firestore
+                                  .collection('orders')
+                                  .doc(document.id)
+                                  .update({'orderStatus': 'Canceled'});
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Order has been canceled.')));
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Only unpaid and pending orders can be canceled.')));
+                            }
+                          } catch (e) {
+                            print("Lỗi khi hủy đơn hàng: $e");
                             ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Order has been canceled.')));
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        'Only unpaid and pending orders can be canceled.')));
+                                const SnackBar(content: Text('Failed to cancel the order.')));
                           }
-                        } catch (e) {
-                          print("Lỗi khi hủy đơn hàng: $e");
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content:
-                                      Text('Failed to cancel the order.')));
-                        }
-                      },
-                      backgroundColor: Colors.red,
-                      icon: Icons.close,
-                      label: 'Cancel Order',
-                    ),
+                        },
+                        backgroundColor: Colors.red,
+                        icon: Icons.close,
+                        label: 'Cancel Order',
+                      ),
                   ],
                 ),
                 child: ExpansionTile(
@@ -133,38 +128,36 @@ class CustomerOrderScreen extends StatelessWidget {
                     leading: CircleAvatar(
                       backgroundColor: Colors.white,
                       radius: 14,
-                      child: data['orderStatus'] == 'Canceled'
+                      child: orderStatus == 'Canceled'
                           ? Icon(Icons.cancel, color: Colors.red)
-                          : data['orderStatus'] == 'Completed'
-                              ? Icon(Icons.check_circle, color: Colors.green)
-                              : data['orderStatus'] == 'Delivering'
-                                  ? Icon(Icons.delivery_dining,
-                                      color: Colors.purple)
-                                  : data['orderStatus'] == 'Preparing'
-                                      ? Icon(Icons.settings, color: Colors.blue)
-                                      : Icon(Icons.pending,
-                                          color: Colors.yellow.shade900),
+                          : orderStatus == 'Completed'
+                          ? Icon(Icons.check_circle, color: Colors.green)
+                          : orderStatus == 'Delivering'
+                          ? Icon(Icons.delivery_dining, color: Colors.purple)
+                          : orderStatus == 'Preparing'
+                          ? Icon(Icons.settings, color: Colors.blue)
+                          : Icon(Icons.pending, color: Colors.yellow.shade900),
                     ),
                     title: Text(
-                      data['orderStatus'] == 'Canceled'
+                      orderStatus == 'Canceled'
                           ? 'Canceled'
-                          : data['orderStatus'] == 'Completed'
-                              ? 'Completed'
-                              : data['orderStatus'] == 'Delivering'
-                                  ? 'Delivering'
-                                  : data['orderStatus'] == 'Preparing'
-                                      ? 'Preparing'
-                                      : 'Pending',
+                          : orderStatus == 'Completed'
+                          ? 'Completed'
+                          : orderStatus == 'Delivering'
+                          ? 'Delivering'
+                          : orderStatus == 'Preparing'
+                          ? 'Preparing'
+                          : 'Pending',
                       style: TextStyle(
-                        color: data['orderStatus'] == 'Canceled'
+                        color: orderStatus == 'Canceled'
                             ? Colors.red
-                            : data['orderStatus'] == 'Completed'
-                                ? Colors.green
-                                : data['orderStatus'] == 'Delivering'
-                                    ? Colors.purple
-                                    : data['orderStatus'] == 'Preparing'
-                                        ? Colors.blue
-                                        : Colors.orange,
+                            : orderStatus == 'Completed'
+                            ? Colors.green
+                            : orderStatus == 'Delivering'
+                            ? Colors.purple
+                            : orderStatus == 'Preparing'
+                            ? Colors.blue
+                            : Colors.orange,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -206,11 +199,9 @@ class CustomerOrderScreen extends StatelessWidget {
                             shrinkWrap: true,
                             itemCount: cartItems.length,
                             itemBuilder: (context, index) {
-                              final item =
-                                  cartItems[index] as Map<String, dynamic>;
+                              final item = cartItems[index] as Map<String, dynamic>;
 
-                              final productImage =
-                                  item['productImage'] as List<dynamic>?;
+                              final productImage = item['productImage'] as List<dynamic>?;
                               final productName = item['productName'] ?? 'N/A';
                               final productPrice = item['productPrice'] ?? '0';
                               final productSize = item['productSize'] ?? 'N/A';
@@ -218,14 +209,12 @@ class CustomerOrderScreen extends StatelessWidget {
 
                               return ListTile(
                                 leading: CircleAvatar(
-                                  backgroundImage: productImage != null &&
-                                          productImage.isNotEmpty
+                                  backgroundImage: productImage != null && productImage.isNotEmpty
                                       ? NetworkImage(productImage[0] ?? '')
                                       : null,
                                 ),
                                 title: Text(productName),
-                                subtitle: Text(
-                                    'Price: \$${productPrice} | Size: ${productSize}'),
+                                subtitle: Text('Price: \$${productPrice} | Size: ${productSize}'),
                                 trailing: Text('Qty: $quantity'),
                               );
                             },

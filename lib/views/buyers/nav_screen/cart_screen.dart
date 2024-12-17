@@ -5,6 +5,7 @@ import 'package:multi_store/provider/cart_provider.dart';
 import 'package:multi_store/views/buyers/auth/login_screen.dart'; // Import màn hình đăng nhập
 import 'package:multi_store/views/buyers/inner_screen/check_out_screen.dart';
 import 'package:multi_store/views/buyers/main_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 
 class CartScreen extends StatelessWidget {
@@ -15,6 +16,7 @@ class CartScreen extends StatelessWidget {
     final CartProvider _cartProvider = Provider.of<CartProvider>(context);
     final cartItems = _cartProvider.getCartItem;
     final FirebaseAuth _auth = FirebaseAuth.instance;
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
     return Scaffold(
       appBar: AppBar(
@@ -44,182 +46,182 @@ class CartScreen extends StatelessWidget {
       ),
       body: _cartProvider.getCartItem.isNotEmpty
           ? SafeArea(
-              child: ListView.builder(
-                itemCount: cartItems.length,
-                itemBuilder: (context, index) {
-                  final cartData = cartItems.values.toList()[index];
+        child: ListView.builder(
+          itemCount: cartItems.length,
+          itemBuilder: (context, index) {
+            final cartData = cartItems.values.toList()[index];
 
-                  return Card(
-                    margin:
-                        const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            height: 100,
-                            width: 100,
-                            child: Image.network(cartData.imageUrl.isNotEmpty
-                                ? cartData.imageUrl[0]
-                                : 'https://via.placeholder.com/150'), // Placeholder nếu không có ảnh
-                          ),
-                          Expanded(
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+            return Card(
+              margin:
+              const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      height: 100,
+                      width: 100,
+                      child: Image.network(cartData.imageUrl.isNotEmpty
+                          ? cartData.imageUrl[0]
+                          : 'https://via.placeholder.com/150'), // Placeholder nếu không có ảnh
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding:
+                        const EdgeInsets.symmetric(horizontal: 10.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceAround,
+                          children: [
+                            Text(
+                              cartData.productName,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              '\$${cartData.price.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.yellow.shade900,
+                              ),
+                            ),
+                            OutlinedButton(
+                              onPressed: () {},
+                              child: Text(cartData.productSize),
+                            ),
+                            Container(
+                              height: 40,
+                              width: 150,
+                              decoration: BoxDecoration(
+                                color: Colors.yellow.shade900,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
                                 mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
+                                MainAxisAlignment.spaceBetween,
                                 children: [
+                                  IconButton(
+                                    onPressed: cartData.quantity == 1
+                                        ? null
+                                        : () {
+                                      _cartProvider
+                                          .decreament(cartData);
+                                    },
+                                    icon: Icon(
+                                      CupertinoIcons.minus,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                                   Text(
-                                    cartData.productName,
+                                    cartData.quantity.toString(),
                                     style: TextStyle(
+                                      color: Colors.white,
                                       fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  Text(
-                                    '\$${cartData.price.toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.yellow.shade900,
                                     ),
                                   ),
-                                  OutlinedButton(
-                                    onPressed: () {},
-                                    child: Text(cartData.productSize),
-                                  ),
-                                  Container(
-                                    height: 40,
-                                    width: 150,
-                                    decoration: BoxDecoration(
-                                      color: Colors.yellow.shade900,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        IconButton(
-                                          onPressed: cartData.quantity == 1
-                                              ? null
-                                              : () {
-                                                  _cartProvider
-                                                      .decreament(cartData);
-                                                },
-                                          icon: Icon(
-                                            CupertinoIcons.minus,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        Text(
-                                          cartData.quantity.toString(),
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                        IconButton(
-                                          onPressed: cartData.quantity ==
-                                                  cartData.productQuantity
-                                              ? null
-                                              : () {
-                                                  _cartProvider
-                                                      .increament(cartData);
-                                                },
-                                          icon: Icon(
-                                            CupertinoIcons.plus,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ],
+                                  IconButton(
+                                    onPressed: cartData.quantity ==
+                                        cartData.productQuantity
+                                        ? null
+                                        : () {
+                                      _cartProvider
+                                          .increament(cartData);
+                                    },
+                                    icon: Icon(
+                                      CupertinoIcons.plus,
+                                      color: Colors.white,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              _cartProvider.removeProductFromCart(
-                                  cartData.productId + cartData.productSize);
-                            },
-                            icon: Icon(
-                              CupertinoIcons.trash,
-                              color: Colors.yellow.shade900,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            )
-          : Center(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/images/abandoned-cart.png',
-                      height: 200,
-                      width: 200,
-                    ),
-                    SizedBox(height: 20),
-                    Text(
-                      'Your Shopping Cart Is Empty',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade800,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 20),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (context) {
-                          return MainScreen();
-                        }));
-                      },
-                      child: Container(
-                        height: 50,
-                        width: MediaQuery.of(context).size.width - 100,
-                        decoration: BoxDecoration(
-                          color: Colors.yellow.shade900,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.yellow.shade900.withOpacity(0.3),
-                              spreadRadius: 2,
-                              blurRadius: 5,
-                              offset: Offset(0, 3),
-                            ),
                           ],
                         ),
-                        child: Center(
-                          child: Text(
-                            'Continue Shopping',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        _cartProvider.removeProductFromCart(
+                            cartData.productId + cartData.productSize);
+                      },
+                      icon: Icon(
+                        CupertinoIcons.trash,
+                        color: Colors.yellow.shade900,
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
+            );
+          },
+        ),
+      )
+          : Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/images/abandoned-cart.png',
+                height: 200,
+                width: 200,
+              ),
+              SizedBox(height: 20),
+              Text(
+                'Your Shopping Cart Is Empty',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade800,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 20),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) {
+                        return MainScreen();
+                      }));
+                },
+                child: Container(
+                  height: 50,
+                  width: MediaQuery.of(context).size.width - 100,
+                  decoration: BoxDecoration(
+                    color: Colors.yellow.shade900,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.yellow.shade900.withOpacity(0.3),
+                        spreadRadius: 2,
+                        blurRadius: 5,
+                        offset: Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Continue Shopping',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
       bottomSheet: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -303,20 +305,33 @@ class CartScreen extends StatelessWidget {
             InkWell(
               onTap: _cartProvider.totalPrice == 0.00
                   ? null
-                  : () {
-                      // Kiểm tra trạng thái đăng nhập
-                      if (_auth.currentUser == null) {
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (context) {
+                  : () async {
+                // Kiểm tra trạng thái đăng nhập
+                if (_auth.currentUser == null) {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) {
+                        return LoginScreen();
+                      }));
+                } else {
+                  // Kiểm tra xem người dùng đã có buyerId trong Firestore chưa
+                  String uid = _auth.currentUser!.uid;
+                  var buyerDoc = await _firestore.collection('buyers').doc(uid).get();
+
+                  if (!buyerDoc.exists) {
+                    // Nếu không có buyerId hợp lệ, chuyển đến LoginScreen
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
                           return LoginScreen();
                         }));
-                      } else {
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (context) {
+                  } else {
+                    // Nếu có buyerId hợp lệ, chuyển đến CheckOutScreen
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
                           return CheckOutScreen();
                         }));
-                      }
-                    },
+                  }
+                }
+              },
               child: Container(
                 height: 50,
                 width: double.infinity,

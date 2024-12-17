@@ -33,15 +33,14 @@ class VendorOrderScreen extends StatelessWidget {
               MaterialPageRoute(builder: (context) => LoginVendorScreen()),
             );
           },
-          child:
-              const Text('Login to Continue', style: TextStyle(fontSize: 18)),
+          child: const Text('Login to Continue', style: TextStyle(fontSize: 18)),
         ),
       );
     }
 
     // Lấy danh sách đơn hàng từ Firestore
     final Stream<QuerySnapshot> _ordersStream =
-        _firestore.collection('orders').snapshots();
+    _firestore.collection('orders').snapshots();
 
     return Scaffold(
       appBar: AppBar(
@@ -139,8 +138,8 @@ class VendorOrderScreen extends StatelessWidget {
                 startActionPane: ActionPane(
                   motion: const ScrollMotion(),
                   children: [
-                    // Check if the order is not canceled before allowing status update
-                    if (data['orderStatus'] != 'Canceled')
+                    // Kiểm tra nếu trạng thái không phải "Completed" hoặc "Canceled" thì mới cho phép thay đổi
+                    if (data['orderStatus'] != 'Completed' && data['orderStatus'] != 'Canceled')
                       SlidableAction(
                         onPressed: (context) async {
                           await _firestore
@@ -154,7 +153,7 @@ class VendorOrderScreen extends StatelessWidget {
                         icon: Icons.settings,
                         label: 'Preparing',
                       ),
-                    if (data['orderStatus'] != 'Canceled')
+                    if (data['orderStatus'] != 'Completed' && data['orderStatus'] != 'Canceled')
                       SlidableAction(
                         onPressed: (context) async {
                           await _firestore
@@ -168,7 +167,7 @@ class VendorOrderScreen extends StatelessWidget {
                         icon: Icons.delivery_dining,
                         label: 'Delivering',
                       ),
-                    if (data['orderStatus'] != 'Canceled')
+                    if (data['orderStatus'] != 'Completed' && data['orderStatus'] != 'Canceled')
                       SlidableAction(
                         onPressed: (context) async {
                           await _firestore
@@ -176,6 +175,7 @@ class VendorOrderScreen extends StatelessWidget {
                               .doc(document.id)
                               .update({
                             'orderStatus': 'Completed',
+                            'paymentStatus': 'paid', // Cập nhật paymentStatus thành 'paid'
                           });
                         },
                         backgroundColor: Colors.green,
@@ -191,12 +191,12 @@ class VendorOrderScreen extends StatelessWidget {
                         data['orderStatus'] == 'Completed'
                             ? Icons.check
                             : data['orderStatus'] == 'Delivering'
-                                ? Icons.delivery_dining
-                                : data['orderStatus'] == 'Preparing'
-                                    ? Icons.settings
-                                    : data['orderStatus'] == 'Canceled'
-                                        ? Icons.cancel
-                                        : Icons.pending,
+                            ? Icons.delivery_dining
+                            : data['orderStatus'] == 'Preparing'
+                            ? Icons.settings
+                            : data['orderStatus'] == 'Canceled'
+                            ? Icons.cancel
+                            : Icons.pending,
                         color: getStatusColor(data['orderStatus'] ?? 'Pending'),
                       ),
                     ),
@@ -246,11 +246,11 @@ class VendorOrderScreen extends StatelessWidget {
                             itemCount: filteredItems.length,
                             itemBuilder: (context, index) {
                               final item =
-                                  filteredItems[index] as Map<String, dynamic>;
+                              filteredItems[index] as Map<String, dynamic>;
                               return ListTile(
                                 leading: CircleAvatar(
                                   backgroundImage:
-                                      NetworkImage(item['productImage'][0]),
+                                  NetworkImage(item['productImage'][0]),
                                 ),
                                 title: Text(item['productName']),
                                 subtitle: Text(
